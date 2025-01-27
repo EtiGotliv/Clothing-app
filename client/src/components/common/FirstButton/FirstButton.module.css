@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Chewy&family=Jersey+15&family=Rubik+Vinyl&display=swap');
+.button {
+  padding: 12px 24px;
+  background-color: #0a498c; /* כחול מודרני */
+  color: white;
+  border: none;
+  border-radius: 25px; /* קצוות עגולים */
+  cursor: pointer;
+  font-size: 16px;
+  font-family: 'Rubik', sans-serif;
+  transition: all 0.3s ease; /* אפקט מעבר */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* צל עדין */
+}
+
+.button:hover {
+  background-color: #0056b3; /* כחול כהה יותר */
+  transform: translateY(-2px); /* אפקט "הרמה" */
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* צל חזק יותר */
+}
+
+.button:active {
+  background-color: #003f7f; /* כחול כהה בלחיצה */
+  transform: translateY(0); /* ביטול הרמה */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* צל רגיל */
+}
+
+.button:disabled {
+  background-color: #e0e0e0; /* רקע אפור בהיר */
+  color: #888; /* טקסט אפור */
+  cursor: not-allowed;
+  box-shadow: none; /* ללא צל */
+}
