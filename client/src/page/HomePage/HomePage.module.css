@@ -1,17 +1,6 @@
 /* HomePage.module.css */
-.container {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 100vh;
-  width: 100%;
-  text-align: center;
-  background-color: #ffffff;
-}
-
 .main {
-  margin-top: 60px; /* מרווח כדי למנוע חפיפה עם ההדר */
+  margin-top: -350px; /* מרווח כדי למנוע חפיפה עם ההדר */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -22,6 +11,10 @@
   font-size: 2.5rem;
   color: #333;
   margin-bottom: 10px;
+}
+
+.header {
+  margin-bottom: 0px; /* או משהו קטן יותר */
 }
 
 .subtitle {
@@ -39,12 +32,13 @@
 .actions button {
   font-size: 1rem;
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: 50px;
   border: none;
   background-color: #be38cd;
   color: white;
   cursor: pointer;
   transition: all 0.3s ease;
+  width: 300px;
 }
 
 .actions button:hover {

@@ -6,8 +6,8 @@ import { Link } from 'react-router-dom';
 
 const HomePage = () => {
   return (
-    <div className={styles.container}>
-      <Header /> 
+    <div>
+      <Header />
       <main className={styles.main}>
         <h1 className={styles.title}>ברוך הבא!</h1>
         <p className={styles.subtitle}>בחר פעולה להמשך:</p>
