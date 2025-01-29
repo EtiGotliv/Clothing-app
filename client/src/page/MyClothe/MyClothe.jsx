@@ -1,15 +1,22 @@
-import React from 'react';
-import Header from '../../components/common/Header/Header';
+import React, { useEffect, useState } from 'react';
 
-function MyClothe() {
+function MyClothes() {
+  const [clothes, setClothes] = useState([]);
+
+  useEffect(() => {
+    fetch('http://localhost:8080/api/clothes') // בקשה לשרת
+      .then(response => response.json())
+      .then(data => setClothes(data)) // עדכון המצב עם הבגדים שהתקבלו
+      .catch(error => console.error('Error fetching clothes:', error));
+  }, []);
+
   return (
-    <Header>
-      <div>
-        <h1>הבגדים שלי</h1>
-        <p>כאן תוכל לראות את הבגדים שבחרת.</p>
-      </div>
-    </Header>
+    <div>
+      <h1>הבגדים שלי</h1>
+      <p>כאן תוכל לראות את הבגדים שבחרת.</p>
+        <p>אין בגדים להצגה כרגע.</p>
+    </div>
   );
 }
 
-export default MyClothe;
+export default MyClothes;
