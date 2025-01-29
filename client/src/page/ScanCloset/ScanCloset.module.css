@@ -1,0 +1,113 @@
+.cameraContainer {
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.preview {
+    position: relative;
+
+    aspect-ratio: 12/9; 
+    background-color: black;
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    width: 100%; 
+}
+
+.previewText {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgb(107, 114, 128);
+}
+
+.gridOverlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+}
+
+.gridCell {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    position: relative;
+}
+
+.uploadButton {
+    padding: 1rem;
+    border-radius: 9999px;
+    background-color: rgb(31, 41, 55);
+    transition: background-color 0.2s;
+}
+
+.uploadButton:hover {
+    background-color: rgb(55, 65, 81);
+}
+
+.uploadIcon {
+    width: 1.8rem;
+    height: 1.8rem;
+    color: white;
+}
+
+.captureButton {
+    padding: 1.5rem;
+    border-radius: 9999px;
+    border: 4px solid white;
+    transition: all 0.2s;
+}
+
+.captureButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.captureButtonInner {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    background-color: white;
+}
+
+.captureButtonActive {
+    transform: scale(0.95);
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.fileInput {
+    display: none;
+}
+
+.placeholder {
+    width: 3.5rem;
+    height: 3.5rem;
+}
+
+
+.capturedImageContainer {
+    margin-top: -5.3rem;
+    display: flex;
+    justify-content: flex-end; 
+    align-items: flex-start; 
+    gap: 1rem; 
+    margin-right: 9rem;
+}
+
+
+.capturedImage {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+}
