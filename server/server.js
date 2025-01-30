@@ -1,35 +1,37 @@
 import express from 'express';
-import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import cors from 'cors';
-
-// טוען את משתני הסביבה מתוך קובץ .env
-dotenv.config();
+import connectDB from '../config/MongoDB.mjs';
+import Clothing from '../config/models/allClothing.js';
 
 const app = express();
+const port = 8080;
 
-// הגדרות CORS (אפשרות להתחבר מהקליינט)
+connectDB();
+
+// הגדרת CORS
 const corsOptions = {
-  origin: "http://localhost:5173", // כתובת ה-frontend שלך
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
 };
 
+// middleware
 app.use(cors(corsOptions));
+app.use(express.json());
 
-// חיבור ל-MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log("MongoDB Connected"))
-.catch((err) => console.log("Error connecting to MongoDB:", err));
+// התחברות למסד הנתונים
+connectDB();
 
-// הגדרת נתיב API
-app.get('/api', (req, res) => {
-  res.json({ message: "API is working!" });
+// נתיבים
+app.get('/api/clothing', async (req, res) => {
+  try {
+    const clothes = await Clothing.getAllClothing();  // שימוש בפונקציה שהגדרנו במודל
+    res.json(clothes);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching clothing', error: error.message });
+  }
 });
 
-// הגדרת פורט
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });
