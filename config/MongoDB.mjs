@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const mongoUrl = `mongodb+srv://site_data_user:${process.env.MONGO_DB_PASSWORD}` +
-  `@tabble-all-Clothing.net/${process.env.MONGO_DB_NAME}?retryWrites=true&w=majority`;
+  `@tabble-all-clothing.ijibl.mongodb.net/${process.env.MONGO_DB_NAME}?retryWrites=true&w=majority`;
 
 // בדיקת כתובת החיבור ל-MongoDB
 console.log('🔹 MongoDB URI:', mongoUrl);

@@ -1,58 +1,43 @@
 import { useState, useEffect } from 'react';
 import styles from './MyClothe.module.css';
+import useApi from '../../components/common/hooks/useApi.jsx';
 
 const MyClothe = () => {
-  const [clothes, setClothes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const url = `${import.meta.env.VITE_SERVER_API_URL}/api/clothes`;
+  console.log(`📡 Fetching from: ${url}`); // בדיקת ה-URL
 
-  // בדיקת משתנה סביבה מה-ENV
-  const API_URL = import.meta.env.VITE_SERVER_API_URL;
-  if (!API_URL) {
-    console.error('❌ Missing VITE_SERVER_API_URL in .env file');
-  }
+  const { data: clothes, loading, error } = useApi(url);
 
-  useEffect(() => {
-    const fetchClothes = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/clothing`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        setClothes(data);
-      } catch (error) {
-        console.error('Error fetching clothes:', error);
-        setError('טעינה נכשלה, נסה שוב מאוחר יותר.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  if (loading) return <div>⏳ טוען...</div>;
+  if (error) return <div>❌ שגיאה: {error.message}</div>;
 
-    fetchClothes();
-  }, [API_URL]);
-
-  if (loading) return <div>טוען...</div>;
-  if (error) return <div>{error}</div>;
+  console.log('👕 Clothes Data:', clothes); // בדיקת הנתונים מה-DB
 
   return (
     <div className={styles.home}>
       <h1 className={styles.headline}>הבגדים שלי</h1>
       <div className={styles.clothingGrid}>
-        {clothes.map((item) => (
-          <div key={item.id} className={styles.clothingItem}>
-            <img 
-              src={item.image} 
-              alt={item.name} 
-              className={styles.clothingImage}
-            />
-            <h3>{item.name}</h3>
-            <p>צבע: {item.color}</p>
-            {item.tags && item.tags.length > 0 && (
-              <p>תגיות: {item.tags.join(', ')}</p>
-            )}
-          </div>
-        ))}
+        {(!clothes || clothes.length === 0) ? (
+          <p>👕 לא נמצאו בגדים להציג</p>
+        ) : (
+          clothes.map((item) => {
+            return (
+              <div key={item._id} className={styles.clothingItem}>
+                <img 
+                  src={item.image} 
+                  alt={item.name} 
+                  className={styles.clothingImage}
+                  onError={(e) => e.target.src = "/Image/placeholder.jpg"} // תמונת ברירת מחדל במקרה של שגיאה
+                />
+                <h3>{item.name}</h3>
+                <p>🎨 צבע: {item.color}</p>
+                {item.tags && item.tags.length > 0 && (
+                  <p>🏷️ תגיות: {item.tags.join(', ')}</p>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
