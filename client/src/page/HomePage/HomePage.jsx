@@ -11,6 +11,7 @@ const HomePage = () => {
       <main className={styles.main}>
         <h1 className={styles.title}>ברוך הבא!</h1>
         <p className={styles.subtitle}>בחר פעולה להמשך:</p>
+        <searchBar />
         <div className={styles.actions}>
           <Link to="/Scan-Camera">
             <FirstButton disabled={false}>
