@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import styles from './MyClothe.module.css';
-import useApi from '../../components/common/hooks/useApi.jsx';
+import useApi from '../../hooks/useApi.jsx';
 
 const MyClothe = () => {
   const url = `${import.meta.env.VITE_SERVER_API_URL}/api/clothes`;

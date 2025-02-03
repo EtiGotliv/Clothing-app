@@ -1,10 +1,15 @@
 /* HomePage.module.css */
 .main {
-  margin-top: -350px; /* מרווח כדי למנוע חפיפה עם ההדר */
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  padding: 40px 20px;
+}
+
+.header {
+  width: 80%;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 .title {
@@ -13,20 +18,17 @@
   margin-bottom: 10px;
 }
 
-.header {
-  margin-bottom: 0px; /* או משהו קטן יותר */
-}
-
 .subtitle {
   font-size: 1.2rem;
   color: #666;
-  margin-bottom: 20px;
 }
 
 .actions {
   display: flex;
   justify-content: center;
   gap: 15px;
+  width: 80%;
+  margin-bottom: 40px;
 }
 
 .actions button {
@@ -43,4 +45,33 @@
 
 .actions button:hover {
   background-color: #380647;
+}
+
+.searchBox {
+  width: 100%;
+  background-color: #f2f2f2;
+  padding: 15px;
+  border-radius: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.searchBox input {
+  flex: 1;
+  border: none;
+  background-color: transparent;
+  font-size: 1rem;
+  padding: 5px 10px;
+}
+
+.searchBox input:focus {
+  outline: none;
+}
+
+.searchBox svg {
+  margin-right: 10px;
+  color: #be38cd;
+  width: 24px;
+  height: 24px;
 }

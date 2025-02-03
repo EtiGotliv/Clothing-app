@@ -1,8 +1,9 @@
 import React from 'react';
 import styles from './HomePage.module.css';
-import Header from '../../components/common/Header/Header';
+import Header from '../../components/Header/Header' 
 import FirstButton from '../../components/common/FirstButton/FirstButton';
 import { Link } from 'react-router-dom';
+import  {Search} from '../../components/Search/Search.jsx'
 
 const HomePage = () => {
   return (
@@ -11,7 +12,6 @@ const HomePage = () => {
       <main className={styles.main}>
         <h1 className={styles.title}>ברוך הבא!</h1>
         <p className={styles.subtitle}>בחר פעולה להמשך:</p>
-        <searchBar />
         <div className={styles.actions}>
           <Link to="/Scan-Camera">
             <FirstButton disabled={false}>
@@ -28,6 +28,9 @@ const HomePage = () => {
               לכל הבגדים
             </FirstButton>
           </Link>
+        </div>
+        <div className={styles.searchBox}>
+          <Search />
         </div>
       </main>
     </div>

@@ -1,39 +1,37 @@
 import express from 'express';
+import { getAllClothing, getClothingById } from '../controllers/clothingController.js';
 import Clothing from '../../config/models/allClothing.js';
 
 const router = express.Router();
 
-// הוספת פריט חדש למסד הנתונים
-router.post('/add', async (req, res) => {
+router.get("/search", async (req, res) => {
   try {
-    const { name, color, image, tags } = req.body;
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ message: "❌ יש לספק מחרוזת חיפוש" });
+    }
 
-    // יצירת מסמך חדש (ללא שדה id, MongoDB יוצר _id אוטומטית)
-    const newClothing = new Clothing({
-      name,
-      color,
-      image,
-      tags: tags || []
-    });
+    const clothes = await Clothing.find({
+      $or: [
+        { name: { $regex: query, $options: "i" } },
+        { category: { $regex: query, $options: "i" } },
+        { tags: { $regex: query, $options: "i" } },
+      ],
+    }).limit(5);
 
-    const savedClothing = await newClothing.save();
-    console.log('✅ Item added:', savedClothing);
-    res.status(201).json(savedClothing);
+    res.json(clothes.map(item => ({
+      _id: item._id,
+      name: item.name,
+      category: item.category,
+      image: item.image || "/default-image.jpg"
+    })));
   } catch (err) {
-    console.error('❌ Error adding item:', err.message);
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// קבלת כל פריטי הבגדים – כאן אנו מגדירים את הנתיב הבסיסי '/' כך ש-GET /api/clothes יחזיר את כל הפריטים
-router.get('/', async (req, res) => {
-  try {
-    const clothes = await Clothing.getAllClothing();
-    res.json(clothes);
-  } catch (err) {
-    console.error('❌ Error fetching items:', err.message);
+    console.error("❌ Error searching items:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
+
+router.get('/', getAllClothing);
+router.get('/:id', getClothingById);
 
 export default router;

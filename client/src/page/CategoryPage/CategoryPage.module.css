@@ -1,0 +1,26 @@
+.categoryPage {
+    max-width: 800px;
+    margin: auto;
+    text-align: center;
+  }
+  
+  .itemsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+  }
+  
+  .itemCard {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .itemCard img {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: cover;
+  }
+  
