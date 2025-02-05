@@ -5,7 +5,7 @@ function OutSugges() {
     return (
         <div>
             <Header /> 
-           "ההצעות לבדים דרך AI" 
+        "ההצעות לבדים דרך AI" 
         </div>
     );
 }
