@@ -1,8 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
 import styles from './ScanCloset.module.css';
-//import Header from '../../components/common/Header/Header';
-
 
 function ScanCloset() {
   const videoRef = useRef(null);
@@ -10,6 +8,7 @@ function ScanCloset() {
   const canvasRef = useRef(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
+  const [formData, setFormData] = useState({ name: '', color: '', tags: '' });
 
   useEffect(() => {
     if (videoRef.current) {
@@ -25,72 +24,47 @@ function ScanCloset() {
   const handleCapture = () => {
     console.log('Capturing photo...');
     setIsCapturing(true);
-
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
     context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
     setCapturedImage(canvas.toDataURL()); 
-    
-    setTimeout(() => setIsCapturing(false), 500); 
+    setIsCapturing(false);
   };
 
-  const handleUpload = () => {
-    console.log('Opening file upload...');
-    fileInputRef.current?.click();
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      console.log('File selected:', file.name);
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/clothes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, image: capturedImage, tags: formData.tags.split(',') })
+      });
+      const data = await response.json();
+      console.log("Saved:", data);
+    } catch (error) {
+      console.error("Error saving data:", error);
     }
   };
 
   return (
     <div className={styles.cameraContainer}>
-      <div className={styles.preview}>
-        {/* Camera Preview */}
-        <video ref={videoRef} autoPlay className={styles.cameraPreview} />
-        <div className={styles.previewText}>
-          <span>Camera Preview</span>
-        </div>
-
-        <div className={styles.gridOverlay}>
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} className={styles.gridCell} />
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.controls}>
-        <button onClick={handleUpload} className={styles.uploadButton}>
-          <Upload className={styles.uploadIcon} />
-        </button>
-
-        <button
-          onClick={handleCapture}
-          className={`${styles.captureButton} ${isCapturing ? styles.captureButtonActive : ""}`}
-        >
-          <div className={styles.captureButtonInner} />
-        </button>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className={styles.fileInput}
-          onChange={handleFileChange}
-        />
-
-        <div className={styles.placeholder} />
-      </div>
+      <video ref={videoRef} autoPlay className={styles.cameraPreview} />
+      <button onClick={handleCapture} className={styles.captureButton}>📷 Capture</button>
 
       {capturedImage && (
-        <div className={styles.capturedImageContainer}>
+        <div>
           <img src={capturedImage} alt="Captured" className={styles.capturedImage} />
+          <div>
+            <input type="text" name="name" placeholder="Name" onChange={handleChange} />
+            <input type="text" name="color" placeholder="Color" onChange={handleChange} />
+            <input type="text" name="tags" placeholder="Tags (comma separated)" onChange={handleChange} />
+            <button onClick={handleSubmit}>Save</button>
+          </div>
         </div>
       )}
-
       <canvas ref={canvasRef} width={640} height={480} style={{ display: 'none' }} />
     </div>
   );
