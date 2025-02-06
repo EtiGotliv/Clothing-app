@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
 import styles from './ScanCloset.module.css';
+import imageCompression from 'browser-image-compression';
 
 function ScanCloset() {
   const videoRef = useRef(null);
@@ -21,14 +22,40 @@ function ScanCloset() {
     }
   }, []);
 
+  // const handleCapture = () => {
+  //   console.log('Capturing photo...');
+  //   setIsCapturing(true);
+  //   const canvas = canvasRef.current;
+  //   const context = canvas.getContext('2d');
+  //   context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+  //   setCapturedImage(canvas.toDataURL()); 
+  //   setIsCapturing(false);
+  // };
+
   const handleCapture = () => {
-    console.log('Capturing photo...');
     setIsCapturing(true);
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
     context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    setCapturedImage(canvas.toDataURL()); 
-    setIsCapturing(false);
+  
+    // שמירה של התמונה כ-Blob
+    canvas.toBlob((blob) => {
+      if (blob) {
+        // דחיסת התמונה
+        imageCompression(blob, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 500,
+          useWebWorker: true,
+        }).then((compressedBlob) => {
+          const dataUrl = URL.createObjectURL(compressedBlob); // יצירת DataURL מה-BLOB הדחוס
+          setCapturedImage(dataUrl);
+          setIsCapturing(false);
+        }).catch((error) => {
+          console.error("Error compressing image:", error);
+          setIsCapturing(false);
+        });
+      }
+    }, 'image/jpeg');
   };
 
   const handleChange = (e) => {
