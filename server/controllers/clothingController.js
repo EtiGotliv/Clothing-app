@@ -21,3 +21,18 @@ export const getClothingById = async (req, res) => {
     res.status(500).json({ message: "שגיאה בקבלת הבגד" });
   }
 };
+
+export const addClothing = async (req, res) => {
+  try {
+    const { name, color, image, tags } = req.body;
+    if (!name || !image) {
+      return res.status(400).json({ message: "חובה לספק שם ותמונה" });
+    }
+    const newClothing = new Clothing({ name, color, image, tags });
+    await newClothing.save();
+    res.status(201).json(newClothing);
+  } catch (error) {
+    res.status(500).json({ message: "שגיאה בשמירת הבגד", error: error.message });
+  }
+};
+

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllClothing, getClothingById } from '../controllers/clothingController.js';
+import { getAllClothing, getClothingById, addClothing } from '../controllers/clothingController.js';
 import Clothing from '../../config/models/allClothing.js';
 
 const router = express.Router();
@@ -31,6 +31,7 @@ router.get("/search", async (req, res) => {
   }
 });
 
+router.post("/", addClothing);
 router.get('/', getAllClothing);
 router.get('/:id', getClothingById);
 
