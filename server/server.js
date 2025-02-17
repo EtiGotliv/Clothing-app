@@ -1,44 +1,25 @@
 import express from 'express';
 import cors from 'cors';
-import connectDB from '../config/MongoDB.mjs';
-import router from './routes/clothingRoutes.js';
+import dotenv from 'dotenv';
+import connectDB from '../config/MongoDB.mjs'
+import authRoutes from './routes/authRoutes.js';
+import clothingRoutes from './routes/clothingRoutes.js';
+
+dotenv.config();
+
 const app = express();
-const port = 8080;
 
-// הגדרת CORS
-const corsOptions = {
-  origin: 'http://localhost:3000', // רק כתובת זו מורשת
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
-};
-
-app.use(cors(corsOptions));
-
-// Middleware
 app.use(express.json());
-
-// חיבור ה-Route של בגדים
-app.use('/api/clothes', router);
+app.use(cors());
 
 // התחברות למסד הנתונים
 connectDB();
 
-// בדיקה אם המסד מחובר
-app.get('/api/health', (req, res) => {
-  res.json({ status: '✅ Server is running!' });
-});
+// נתיבי האותנטיקציה והבגדים
+app.use('/api/auth', authRoutes);
+app.use('/api/clothes', clothingRoutes);
 
-// שליפת הבגדים מהמסד
-app.get('/api/clothes', async (req, res) => {
-  try {
-    const clothes = await Clothing.find(); // תיקון פה
-    res.json(clothes);
-  } catch (error) {
-    console.error('❌ Error fetching clothes:', error);
-    res.status(500).json({ message: 'Database Error', error: error.message });
-  }
-});
-
+const port = process.env.PORT || 8080;
 app.listen(port, () => {
   console.log(`🚀 Server is running on http://localhost:${port}`);
 });
