@@ -7,19 +7,23 @@ const useApi = (url) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log(`📡 Fetching data from: ${url}`); // הדפסת ה-URL לבדיקה
+      const token = localStorage.getItem('authToken'); // קבלת ה-token מ-localStorage
 
       try {
-        const response = await fetch(url);
+        const response = await fetch(url,{
+
+         headers: {
+            'Authorization': `Bearer ${token}`, // שליחה של ה-token עם כל בקשה
+          },
+        });
+
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          throw new Error('❌ Error fetching data');
         }
 
         const result = await response.json();
-        console.log('📦 Data received:', result); // הדפסת הנתונים המתקבלים
         setData(result);
       } catch (error) {
-        console.error('❌ Fetch error:', error);
         setError(error);
       } finally {
         setLoading(false);
