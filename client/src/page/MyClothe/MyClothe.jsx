@@ -1,3 +1,4 @@
+// src/page/MyClothe/MyClothe.jsx
 import React, { useState, useEffect } from 'react';
 import styles from './MyClothe.module.css';
 import LoadingAnimation from '../../components/common/LoadingAnimation/LoadingAnimation.jsx';
@@ -7,17 +8,17 @@ const MyClothe = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // קבלת כתובת ה-API מהסביבה
+  // ודאי שהכתובת נכונה
   const url = `${import.meta.env.VITE_SERVER_API_URL}/api/clothes`;
 
   useEffect(() => {
-    // קבלת הטוקן מה-localStorage
     const token = localStorage.getItem("authToken");
-    // שליחת הבקשה עם כותרת Authorization
+    console.log("Token:", token);
+
     fetch(url, {
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        "x-user-id": token,
       },
     })
       .then((res) => {

@@ -1,0 +1,82 @@
+.authPageContainer {
+    display: flex;
+    /* חשוב: למלא את כל גובה הדף */
+    height: 100vh; 
+    width: 100%;
+  }
+  
+  .leftPanel {
+    flex: 1;
+    /* הרקע הגרדיאנט */
+    background: linear-gradient(45deg, #8e2de2, #4a00e0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .rightPanel {
+    flex: 1;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* עיצוב הלוגו בחלק השמאלי */
+  .leftPanel .logo {
+    max-width: 80%;
+    height: auto;
+  }
+  
+  
+  /* עיצוב הטופס בתוך החלק הימני */
+  .formContainer {
+    width: 100%;
+    max-width: 500px;
+    padding: 2.5rem;
+    border: 3px solid transparent;
+    border-image: linear-gradient(45deg, #8e2de2, #4a00e0) 1;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .formContainer h1 {
+    margin-bottom: 1.5rem;
+    font-size: 2.5rem;
+    color: #4a00e0;
+  }
+  
+  .formContainer form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .formContainer input[type="text"],
+  .formContainer input[type="email"],
+  .formContainer input[type="password"] {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1.1rem;
+  }
+  
+  .formContainer input[type="submit"] {
+    padding: 1rem;
+    background-color: #4a00e0;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+  }
+  
+  .link {
+    color: #4a00e0;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  

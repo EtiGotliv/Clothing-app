@@ -1,4 +1,14 @@
-import express from 'express';
+import express from "express";
+const router = express.Router();
+
+// הגדר את הנתיבים שלך
+router.get("/", (req, res) => {
+  res.send("Hello from authRoutes");
+});
+
+export default router;
+
+/*import express from 'express';
 import User from '../models/User.js';
 import { createJSONToken } from '../util/auth.js';
 import { isValidEmail, isValidText } from '../util/validation.js';
@@ -62,3 +72,4 @@ router.post('/login', async (req, res) => {
 });
 
 export default router;
+*/

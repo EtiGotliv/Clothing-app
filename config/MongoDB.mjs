@@ -1,3 +1,4 @@
+// config/MongoDB.mjs
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -10,7 +11,6 @@ const connectDB = async () => {
       useNewUrlParser: true,
       connectTimeoutMS: 30000,
       socketTimeoutMS: 30000
-      // אפשר להשמיט useUnifiedTopology אם הוא לא משפיע
     });
     console.log("🚀 Connected to MongoDB");
   } catch (error) {
@@ -19,4 +19,22 @@ const connectDB = async () => {
   }
 };
 
-export default connectDB;
+// הגדרת הסכמה למשתמש
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true
+  },
+  password: {
+    type: String,
+    required: true
+  }
+});
+
+const User = mongoose.model("users", userSchema);
+
+export { connectDB, User };
