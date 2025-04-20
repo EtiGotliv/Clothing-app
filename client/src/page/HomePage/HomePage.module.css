@@ -12,8 +12,7 @@ html, body, #root {
   align-items: center;
   justify-content: center; /* ממקם את התוכן באמצע הדף */
   padding: 40px 20px;
-  min-height: 100vh; /* גובה מינימלי של כל המסך */
-  width: 100%;
+
 }
 
 /* עיצוב כותרת */
