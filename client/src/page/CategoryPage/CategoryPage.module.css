@@ -1,26 +1,39 @@
+/* src/page/CategoryPage/CategoryPage.module.css */
 .categoryPage {
-    max-width: 800px;
-    margin: auto;
-    text-align: center;
-  }
-  
-  .itemsGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
-  }
-  
-  .itemCard {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 10px;
-    text-align: center;
-  }
-  
-  .itemCard img {
-    width: 100%;
-    height: auto;
-    max-height: 200px;
-    object-fit: cover;
-  }
-  
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 1rem;
+  text-align: center;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.itemsGrid {
+  display: grid;
+  /* נשתמש במינימום של 200px לעמודה, כך שיופיעו כמה כרטיסים בשורה */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 1.5rem;
+}
+
+.itemCard {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.5rem;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.itemCard:hover {
+  transform: scale(1.03);
+}
+
+/* הגדרת גודל קבוע יחסית לתמונות */
+.itemCard img {
+  width: 200px;        /* התמונות ימלאו את רוחב הכרטיס */
+  height: 180px;      /* גובה קבוע */
+  object-fit: cover;  /* תמונה תתאימ/תחתוך בהתאם */
+  border-radius: 5px;
+}

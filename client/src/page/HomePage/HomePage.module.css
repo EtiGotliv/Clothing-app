@@ -1,12 +1,21 @@
-/* HomePage.module.css */
+/* הגדרת גובה מלא לכל הדף */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* מיכל ראשי - יתפרס על כל גובה המסך */
 .main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center; /* ממקם את התוכן באמצע הדף */
   padding: 40px 20px;
-  direction: rtl;
+
 }
 
+/* עיצוב כותרת */
 .header {
   width: 80%;
   text-align: center;
@@ -24,6 +33,7 @@
   color: #666;
 }
 
+/* כפתורים */
 .actions {
   display: flex;
   justify-content: center;
@@ -48,6 +58,7 @@
   background-color: #380647;
 }
 
+/* חיפוש */
 .searchBox {
   width: 100%;
   background-color: #f2f2f2;

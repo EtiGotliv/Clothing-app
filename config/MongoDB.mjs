@@ -1,25 +1,40 @@
+// config/MongoDB.mjs
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
-const mongoUrl = `mongodb+srv://site_data_user:${process.env.MONGO_DB_PASSWORD}` +
-  `@tabble-all-clothing.ijibl.mongodb.net/${process.env.MONGO_DB_NAME}?retryWrites=true&w=majority`;
+const mongoURI = `mongodb+srv://site_data_user:${process.env.MONGO_DB_PASSWORD}@tabble-all-clothing.ijibl.mongodb.net/${process.env.MONGO_DB_NAME}?retryWrites=true&w=majority`;
 
-// בדיקת כתובת החיבור ל-MongoDB
-console.log('🔹 MongoDB URI:', mongoUrl);
-
-// פונקציה להתחברות למסד הנתונים
 const connectDB = async () => {
   try {
-    await mongoose.connect(mongoUrl, {
-      serverSelectionTimeoutMS: 5000, // Timeout in ms for server selection
+    await mongoose.connect(mongoURI, {
+      useNewUrlParser: true,
+      connectTimeoutMS: 30000,
+      socketTimeoutMS: 30000
     });
-    console.log('✅ MongoDB connected successfully!');
+    console.log("🚀 Connected to MongoDB");
   } catch (error) {
-    console.error('❌ Error connecting to MongoDB:', error);
-    process.exit(1); // יציאה מהתהליך אם החיבור נכשל
+    console.error("❌ Error connecting to MongoDB:", error);
+    process.exit(1);
   }
 };
 
-export default connectDB;
+// הגדרת הסכמה למשתמש
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true
+  },
+  password: {
+    type: String,
+    required: true
+  }
+});
+
+const User = mongoose.model("users", userSchema);
+
+export { connectDB, User };
