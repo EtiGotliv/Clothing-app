@@ -10,26 +10,34 @@ function ScanCloset() {
   const [capturedImage, setCapturedImage] = useState(null);
   const [formData, setFormData] = useState({ name: '', color: '', tags: '' });
   const [saveStatus, setSaveStatus] = useState('');
+  const [stream, setStream] = useState(null);
 
   const userId = localStorage.getItem('authToken') || '67b31f23fb4864c43330f8ac';
 
+  const startCamera = async () => {
+    try {
+      const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = videoStream;
+      }
+      setStream(videoStream);
+    } catch (err) {
+      console.error("Error accessing camera: ", err);
+    }
+  };
+
   useEffect(() => {
-    if (videoRef.current) {
-      navigator.mediaDevices
-        .getUserMedia({ video: true })
-        .then((stream) => {
-          videoRef.current.srcObject = stream;
-        })
-        .catch((err) => console.error("Error accessing camera: ", err));
+    if (!capturedImage) {
+      startCamera();
     }
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
+      if (stream) {
+        const tracks = stream.getTracks();
         tracks.forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [capturedImage]);
 
   const handleCapture = () => {
     console.log("🎥 handleCapture clicked");
@@ -71,6 +79,12 @@ function ScanCloset() {
             console.log("📡 Base64 result length:", base64data?.length);
             setCapturedImage(base64data);
             setIsCapturing(false);
+            
+            if (stream) {
+              const tracks = stream.getTracks();
+              tracks.forEach(track => track.stop());
+              setStream(null);
+            }
           };
           reader.readAsDataURL(compressedBlob);
         } catch (error) {
@@ -86,6 +100,10 @@ function ScanCloset() {
   
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleRetake = () => {
+    setCapturedImage(null);
   };
 
   const handleSubmit = async () => {
@@ -150,7 +168,7 @@ function ScanCloset() {
       ) : (
         <div className={styles.capturedContainer}>
           <img src={capturedImage} alt="Captured" className={styles.capturedImage} />
-          <button onClick={() => setCapturedImage(null)} className={styles.retakeButton}>
+          <button onClick={handleRetake} className={styles.retakeButton}>
             צלם שוב
           </button>
           
