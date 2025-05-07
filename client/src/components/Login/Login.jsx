@@ -1,7 +1,7 @@
 // src/components/Login/Login.jsx
-import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "../AuthForm/AuthForm.module.css";
 
 function Login() {
@@ -12,15 +12,15 @@ function Login() {
   async function submit(e) {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:8080/signup", { email, password });
+      const res = await axios.post("http://localhost:8080/", { email, password });
       
       // { status: "success", userId: "67b31f23fb4864c43330f8ac", name: "fridi" }
       if (res.data.status === "success") {
-        const { userId, name ,token} = res.data;
+        const { userId, name } = res.data;
         console.log("Response data:", res.data);
 
-        // localStorage.setItem("authToken", userId);
-        localStorage.setItem("authToken", token);
+        localStorage.setItem("authToken", userId);
+        // localStorage.setItem("authToken", token);
         localStorage.setItem("userName", name);
         navigate("/home", { state: { id: userId, name } });
       } else {
