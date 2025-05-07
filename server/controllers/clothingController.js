@@ -1,5 +1,5 @@
 import Clothing from "../../config/models/allClothing.js";
-import { suggestOutfitFromWardrobe } from "../services/openaiService.js";
+//import { suggestOutfitFromWardrobe } from "../services/openaiService.js";
 
 export const suggestOutfitFromClothingDB = async (req, res) => {
   try {
@@ -22,8 +22,8 @@ export const suggestOutfitFromClothingDB = async (req, res) => {
       };
     });
 
-    const result = await suggestOutfitFromWardrobe(wardrobe);
-    res.json({ suggestions: result });
+    //const result = await suggestOutfitFromWardrobe(wardrobe);
+    //res.json({ suggestions: result });
 
   } catch (error) {
     console.error(error);
