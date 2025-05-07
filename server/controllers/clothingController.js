@@ -1,38 +1,32 @@
 import Clothing from "../../config/models/allClothing.js";
+import { suggestOutfitFromWardrobe } from "../services/openaiService.js";
 
-export const getAllClothing = async (req, res) => {
+export const suggestOutfitFromClothingDB = async (req, res) => {
   try {
-    const clothes = await Clothing.find();
-    res.json(clothes);
+    const clothes = await Clothing.find({ user: req.userId }); 
+
+    const wardrobe = clothes.map(item => {
+      const seasonTag = item.tags?.find(tag =>
+        ["Summer", "Winter", "Fall", "Spring"].includes(tag)
+      );
+      const eventTag = item.tags?.find(tag =>
+        ["Weekday", "Event", "Work"].includes(tag)
+      );
+
+      return {
+        name: item.name,
+        category: item.category || "בגד",
+        color: item.color,
+        season: seasonTag || "כללי",
+        event: eventTag || "כללי"
+      };
+    });
+
+    const result = await suggestOutfitFromWardrobe(wardrobe);
+    res.json({ suggestions: result });
+
   } catch (error) {
-    res.status(500).json({ message: "שגיאה בקבלת הבגדים" });
+    console.error(error);
+    res.status(500).json({ error: "שגיאה בקבלת הצעת שילוב מה-AI" });
   }
 };
-
-export const getClothingById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const clothing = await Clothing.findById(id);
-    if (!clothing) {
-      return res.status(404).json({ message: "הבגד לא נמצא" });
-    }
-    res.json(clothing);
-  } catch (error) {
-    res.status(500).json({ message: "שגיאה בקבלת הבגד" });
-  }
-};
-
-export const addClothing = async (req, res) => {
-  try {
-    const { name, color, image, tags } = req.body;
-    if (!name || !image) {
-      return res.status(400).json({ message: "חובה לספק שם ותמונה" });
-    }
-    const newClothing = new Clothing({ name, color, image, tags });
-    await newClothing.save();
-    res.status(201).json(newClothing);
-  } catch (error) {
-    res.status(500).json({ message: "שגיאה בשמירת הבגד", error: error.message });
-  }
-};
-

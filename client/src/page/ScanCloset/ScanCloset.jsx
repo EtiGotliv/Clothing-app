@@ -1,6 +1,4 @@
 import imageCompression from 'browser-image-compression';
-import React, { useEffect, useRef, useState } from 'react';
-import styles from './ScanCloset.module.css';
 
 function ScanCloset() {
   const videoRef = useRef(null);
@@ -51,35 +49,23 @@ function ScanCloset() {
     }
   
     context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    console.log("🖼️ Image drawn to canvas");
   
-    canvas.toBlob(async (blob) => {
-      console.log("📦 Got blob:", blob);
+    // שמירה של התמונה כ-Blob
+    canvas.toBlob((blob) => {
       if (blob) {
-        try {
-          const compressedBlob = await imageCompression(blob, {
-            maxSizeMB: 1,
-            maxWidthOrHeight: 500,
-            useWebWorker: true,
-          });
-  
-          console.log("🗜️ Compressed blob:", compressedBlob);
-  
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const base64data = reader.result;
-            console.log("📡 Base64 result length:", base64data?.length);
-            setCapturedImage(base64data);
-            setIsCapturing(false);
-          };
-          reader.readAsDataURL(compressedBlob);
-        } catch (error) {
-          console.error("❌ Error compressing image:", error);
+        // דחיסת התמונה
+        imageCompression(blob, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 500,
+          useWebWorker: true,
+        }).then((compressedBlob) => {
+          const dataUrl = URL.createObjectURL(compressedBlob); // יצירת DataURL מה-BLOB הדחוס
+          setCapturedImage(dataUrl);
           setIsCapturing(false);
-        }
-      } else {
-        console.error("❌ Failed to get blob from canvas");
-        setIsCapturing(false);
+        }).catch((error) => {
+          console.error("Error compressing image:", error);
+          setIsCapturing(false);
+        });
       }
     }, 'image/jpeg');
   };
@@ -150,49 +136,11 @@ function ScanCloset() {
       ) : (
         <div className={styles.capturedContainer}>
           <img src={capturedImage} alt="Captured" className={styles.capturedImage} />
-          <button onClick={() => setCapturedImage(null)} className={styles.retakeButton}>
-            צלם שוב
-          </button>
-          
-          <div className={styles.formContainer}>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              placeholder="שם הפריט (חובה)"
-              onChange={handleChange}
-              className={styles.input}
-              required
-            />
-            <input
-              type="text"
-              name="color"
-              value={formData.color}
-              placeholder="צבע"
-              onChange={handleChange}
-              className={styles.input}
-            />
-            <input
-              type="text"
-              name="tags"
-              value={formData.tags}
-              placeholder="תגיות (מופרדות בפסיקים)"
-              onChange={handleChange}
-              className={styles.input}
-            />
-            <button
-              onClick={handleSubmit}
-              className={styles.saveButton}
-              disabled={!formData.name}
-            >
-              שמור פריט
-            </button>
-            
-            {saveStatus && (
-              <div className={saveStatus.includes('שגיאה') ? styles.errorMessage : styles.successMessage}>
-                {saveStatus}
-              </div>
-            )}
+          <div>
+            <input type="text" name="name" placeholder="Name" onChange={handleChange} />
+            <input type="text" name="color" placeholder="Color" onChange={handleChange} />
+            <input type="text" name="tags" placeholder="Tags (comma separated)" onChange={handleChange} />
+            <button onClick={handleSubmit}>Save</button>
           </div>
         </div>
       )}
