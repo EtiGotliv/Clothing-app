@@ -12,17 +12,16 @@ function Login() {
   async function submit(e) {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:8080/", { email, password });
+      const res = await axios.post("http://localhost:8080/signup", { email, password });
       
-      // נניח שהשרת מחזיר:
       // { status: "success", userId: "67b31f23fb4864c43330f8ac", name: "fridi" }
       if (res.data.status === "success") {
-        const { userId, name } = res.data;
+        const { userId, name ,token} = res.data;
         console.log("Response data:", res.data);
 
-        localStorage.setItem("authToken", userId);
+        // localStorage.setItem("authToken", userId);
+        localStorage.setItem("authToken", token);
         localStorage.setItem("userName", name);
-        // השתמשי במשתנה 'name' במקום 'userName'
         navigate("/home", { state: { id: userId, name } });
       } else {
         alert("User does not exist");
@@ -38,22 +37,21 @@ function Login() {
         <div className={styles.leftPanel}>
         <img src="/path_to_your_logo.png" alt="Logo" className={styles.logo} />
       </div>
-      {/* חלק ימין עם הטופס */}
       <div className={styles.rightPanel}>
         <div className={styles.formContainer}>
       <h1>Login</h1>
       <form onSubmit={submit}>
-        <input 
-          type="email" 
+        <input
+          type="email"
           onChange={(e) => setEmail(e.target.value)} 
-          placeholder="Email" 
-          required 
+          placeholder="Email"
+          required
         />
-        <input 
-          type="password" 
+        <input
+          type="password"
           onChange={(e) => setPassword(e.target.value)} 
-          placeholder="Password" 
-          required 
+          placeholder="Password"
+          required
         />
         <input type="submit" value="Login" />
       </form>

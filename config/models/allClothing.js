@@ -2,23 +2,35 @@
 import mongoose from 'mongoose';
 
 const clothingSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  color: { type: String },
-  image: { type: String, required: true },
-  tags: { type: [String], default: [] },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true }
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  color: {
+    type: String,
+    trim: true
+  },
+  tags: {
+    type: [String],
+    default: []
+  },
+  image: {
+    type: String,
+    required: true
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-// פונקציות סטטיות (אופציונלי)
-clothingSchema.statics.getAllClothing = async function() {
-  return await this.find({});
-};
 
-clothingSchema.statics.getClothingById = async function(id) {
-  return await this.findOne({ _id: id });
-};
-
-// ציון שם האוסף במפורש
-const Clothing = mongoose.model("clothing", clothingSchema, "clothing");
+const Clothing = mongoose.models.Clothing || mongoose.model('Clothing', clothingSchema);
 
 export default Clothing;

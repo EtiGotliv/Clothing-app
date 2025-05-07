@@ -1,7 +1,7 @@
 import express from "express";
+
 const router = express.Router();
 
-// הגדר את הנתיבים שלך
 router.get("/", (req, res) => {
   res.send("Hello from authRoutes");
 });
@@ -19,7 +19,6 @@ router.post('/signup', async (req, res, next) => {
   const data = req.body;
   let errors = {};
 
-  // בדיקת אימייל
   if (!isValidEmail(data.email)) {
     errors.email = 'Invalid email.';
   } else {
@@ -34,18 +33,15 @@ router.post('/signup', async (req, res, next) => {
     }
   }
 
-  // בדיקת סיסמה
   if (!isValidText(data.password, 6)) {
     errors.password = 'Invalid password. Must be at least 6 characters long.';
   }
 
-  // אם יש שגיאות - מחזירים
   if (Object.keys(errors).length > 0) {
     return res.status(422).json({ message: 'Signup failed.', errors });
   }
 
   try {
-    // יצירת המשתמש – נניח שהמודל משתמש בוירטואל "password" שמבצע הצפנה
     const user = new User({ name: data.name, email: data.email, password: data.password });
     await user.save();
     const token = createJSONToken(user);

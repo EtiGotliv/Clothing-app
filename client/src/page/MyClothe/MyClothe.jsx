@@ -1,14 +1,13 @@
 // src/page/MyClothe/MyClothe.jsx
-import React, { useState, useEffect } from 'react';
-import styles from './MyClothe.module.css';
+import React, { useEffect, useState } from 'react';
 import LoadingAnimation from '../../components/common/LoadingAnimation/LoadingAnimation.jsx';
+import styles from './MyClothe.module.css';
 
 const MyClothe = () => {
   const [clothes, setClothes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ודאי שהכתובת נכונה
   const url = `${import.meta.env.VITE_SERVER_API_URL}/api/clothes`;
 
   useEffect(() => {
@@ -19,6 +18,7 @@ const MyClothe = () => {
       headers: {
         "Content-Type": "application/json",
         "x-user-id": token,
+        // "Authorization": `Bearer ${token}`,
       },
     })
       .then((res) => {

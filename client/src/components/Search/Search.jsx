@@ -14,7 +14,6 @@ const Search = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const navigate = useNavigate();
 
-  // עדכון הערך הדבוק (debounced) לאחר 500ms
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(query);
@@ -22,7 +21,6 @@ const Search = () => {
     return () => clearTimeout(handler);
   }, [query]);
 
-  // שליפת תוצאות חיפוש מהשרת בהתאם ל-debouncedQuery
   useEffect(() => {
     if (debouncedQuery.length > 0) {
       setLoading(true);
@@ -32,6 +30,8 @@ const Search = () => {
         headers: {
           "Content-Type": "application/json",
           "x-user-id": userId,
+          // "Authorization": `Bearer ${token}`,
+
         },
       })
         .then((res) => {
@@ -53,7 +53,6 @@ const Search = () => {
     }
   }, [debouncedQuery]);
 
-  // ניווט לעמוד הקטגוריה של הפריט שנבחר
   const handleNavigation = (category) => {
     setIsAnimating(true);
     setTimeout(() => {

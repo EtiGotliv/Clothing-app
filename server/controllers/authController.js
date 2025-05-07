@@ -2,6 +2,8 @@
 const { add, get } = require('../data/user');
 const { createJSONToken, isValidPassword } = require('../util/auth');
 const { isValidEmail, isValidText } = require('../util/validation');
+import jwt from 'jsonwebtoken';
+
 
 const router = express.Router();
 
@@ -34,9 +36,8 @@ router.post('/signup', async (req, res, next) => {
   try {
     const createdUser = await add(data);
     const authToken = createJSONToken(createdUser.email);
-    res
-      .status(201)
-      .json({ message: 'User created.', user: createdUser, token: authToken });
+    res.status(201).json({ message: 'User created.',
+                            user: createdUser, token: authToken });
   } catch (error) {
     next(error);
   }

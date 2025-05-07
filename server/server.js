@@ -10,25 +10,22 @@ dotenv.config();
 
 const app = express();
 
-app.use(express.json());
+// app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-// נתיב בסיסי לבדיקה
 app.get("/", (req, res) => {
   res.send("Welcome to the API");
 });
 
-// נתיב כניסה (login)
 app.post("/", async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email, password });
     if (user) {
-      // משתמש קיים – מחזירים גם את השם
       return res.json({ status: "success", userId: user._id, name: user.name });
     } else {
-      // משתמש לא קיים
       return res.json({ status: "notexist" });
     }
   } catch (error) {
@@ -38,8 +35,6 @@ app.post("/", async (req, res) => {
 });
 
 
-
-// נתיב הרשמה (signup)
 app.post("/Signup", async (req, res) => {
   const { name, email, password } = req.body;
   try {
@@ -48,7 +43,6 @@ app.post("/Signup", async (req, res) => {
       return res.json("exist");
     }
     const newUser = await User.create({ name, email, password });
-    // החזר את המשתמש החדש בצורה שמתאימה לציפיות הקליינט
     return res.json({ status: "success", userId: newUser._id });
   } catch (error) {
     console.error(error);
@@ -57,16 +51,19 @@ app.post("/Signup", async (req, res) => {
 });
 
 
-// התחברות למסד הנתונים
 connectDB();
 
 
 app.use('/api/clothes', (req, res, next) => {
-  console.log("Request arrived to /api/clothes with x-user-id:", req.headers['x-user-id']);
+  // const token = req.headers["authorization"]?.split(" ")[1]; // מחפש את ה-Bearer Token
+  // if (!token) {
+  //   return res.status(401).json({ message: "Unauthorized" });
+  // }
+  // console.log("Request arrived to /api/clothes with x-user-id:", req.headers['x-user-id']);
+  // console.log("Token from localStorage:", token);
   next();
 }, clothingRoutes);
 
-// שימוש בנתיבי האותנטיקציה והבגדים
 app.use('/api/auth', authRoutes);
 app.use('/api/clothes', clothingRoutes);
 

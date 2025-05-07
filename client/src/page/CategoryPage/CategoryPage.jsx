@@ -1,8 +1,8 @@
 // src/page/CategoryPage/CategoryPage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import styles from "./CategoryPage.module.css";
 import LoadingAnimation from "../../components/common/LoadingAnimation/LoadingAnimation.jsx";
+import styles from "./CategoryPage.module.css";
 
 const CategoryPage = () => {
   const { categoryName } = useParams();
@@ -13,10 +13,14 @@ const CategoryPage = () => {
   useEffect(() => {
     setLoading(true);
     const token = localStorage.getItem("authToken");
+    console.log("Token from localStorage:", token);
+
+    
     fetch(`http://localhost:8080/api/clothes/search?query=${encodeURIComponent(categoryName)}`, {
       headers: {
         "Content-Type": "application/json",
         "x-user-id": token,
+        // "Authorization": `Bearer ${token}`,
       },
     })
       .then((res) => {
@@ -26,7 +30,6 @@ const CategoryPage = () => {
         return res.json();
       })
       .then((data) => {
-        // נוודא שהתשובה היא מערך
         setItems(Array.isArray(data) ? data : data ? [data] : []);
         setLoading(false);
       })
