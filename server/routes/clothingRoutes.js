@@ -28,26 +28,20 @@ router.post("/analyze", upload.single("file"), async (req, res) => {
     console.log("Raw AI result:", result);
     
     try {
-      // נקה סימני markdown אם קיימים
       let cleanResult = result;
       
-      // מסיר את סימוני הקוד של markdown (```json וכו')
       if (result.includes('```')) {
-        // הסר את השורה הראשונה אם היא מכילה רק סימני קוד והגדרת שפה
         cleanResult = result.replace(/```(json|jsoon|javascript)?\n/, '');
-        // הסר את הסימנים המסיימים
         cleanResult = cleanResult.replace(/```\s*$/, '');
       }
       
       console.log("Cleaned result:", cleanResult);
       
-      // נסה לפרסר את התוצאה המנוקה
       const parsed = JSON.parse(cleanResult);
       return res.json(parsed);
     } catch (err) {
       console.warn("⚠️ Failed to parse AI result:", err.message);
       console.log("Result received:", result);
-      // שלח את התוצאה המקורית אם הפרסור נכשל
       return res.json({ name: "", color: "", season: "", event: "" });
     }
   } catch (error) {
@@ -92,6 +86,44 @@ router.get("/search", checkAuthMiddleware, async (req, res) => {
   const results = await Clothing.find({ name: { $regex: regex }, user: req.userId });
   res.json(results);
 });
+
+router.delete('/delete/:id', checkAuthMiddleware, async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ message: "Invalid ID" });
+
+  try {
+    const deleted = await Clothing.findOneAndDelete({ _id: id, user: req.userId });
+    if (!deleted) return res.status(404).json({ message: "Item not found or unauthorized" });
+    res.json({ message: "Item deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Delete failed", error: error.message });
+  }
+});
+router.put('/update/:id', checkAuthMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { name, color, image, tags } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ success: false, message: "Invalid ID" });
+  }
+
+  try {
+    const updatedItem = await Clothing.findOneAndUpdate(
+      { _id: id, user: req.userId },
+      { name, color, image, tags },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedItem) {
+      return res.status(404).json({ success: false, message: "Item not found or unauthorized" });
+    }
+
+    res.json({ success: true, message: "Item updated successfully", item: updatedItem });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Update failed", error: error.message });
+  }
+});
+
 
 router.get('/suggest-outfit-from-db', checkAuthMiddleware, suggestOutfitFromClothingDB);
 
