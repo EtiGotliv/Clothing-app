@@ -1,7 +1,6 @@
-
 .appHeader {
   background-color: #c3e9fb;
-  padding: 0px 30px;
+  padding: 0 30px;
   color: black;
   display: flex;
   align-items: center;
@@ -11,7 +10,6 @@
   margin: 0 auto;
 }
 
-/* ניווט עם רווחים תקינים */
 .appNav {
   display: flex;
   align-items: center;

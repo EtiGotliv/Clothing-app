@@ -12,15 +12,13 @@ const Header = () => {
     return null;
   }
 
-  // הגדרת תמונת ברירת מחדל שתהיה לכל המשתמשים
-  //const defaultUserImage = "https://via.placeholder.com/150?text=Default+Profile";
-  const userImage = localStorage.getItem("userImage"); // || defaultUserImage;
+  const userImage = localStorage.getItem("userImage");
 
   const handleSignOut = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userName");
     localStorage.removeItem("userImage");
-    window.location.href = "/"; // או שימוש ב-react-router
+    window.location.href = "/";
   };
 
   return (
@@ -30,7 +28,7 @@ const Header = () => {
         <div className="flex items-center">
           <img
             className="w-12 h-12"
-            src="https://tailwindui.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
+            src="/Image/Logo.png" // נתיב מתוקן
             alt="Your Company"
           />
         </div>

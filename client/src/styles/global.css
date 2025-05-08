@@ -1,20 +1,13 @@
-/* 🎯 Reset בסיסי */
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
-/* 🛠 מניעת גלילה אופקית */
 html, body {
-  margin: 0;
-  padding: 0;
   width: 100%;
   height: 100%;
   overflow-x: hidden;
 }
 
-/* 🌍 הבטחת רוחב תקין לכל האלמנטים */
 #root {
   width: 100%;
   max-width: 1280px;
