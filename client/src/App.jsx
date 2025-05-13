@@ -15,7 +15,7 @@ function App() {
   return (
     <BrowserRouter>
       <div>
-        <Header /> 
+        <Header />
       </div>
       
       <main className={styles.main}>

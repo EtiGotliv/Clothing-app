@@ -1,14 +1,11 @@
 // src/page/HomePage/HomePage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import items from '../../data/clothingItems.json';
 import styles from './HomePage.module.css';
-import FirstButton from '../../components/common/FirstButton/FirstButton';
-import Search from '../../components/Search/Search.jsx';
-import LoadingAnimation from '../../components/common/LoadingAnimation/LoadingAnimation';
 
 const HomePage = () => {
   const location = useLocation();
-  const [isAnimating, setIsAnimating] = useState(false);
   const [userProfilePic, setUserProfilePic] = useState(null);
   const navigate = useNavigate();
 
@@ -26,65 +23,81 @@ const HomePage = () => {
     }
   }, []);
 
-  if (!userId) {
-    return <div>❌ לא נמצא מידע על המשתמש. אנא התחבר מחדש.</div>;
-  }
-
   const handleNavigation = (page) => {
-    if (page === '/Scan-Camera') {
-      navigate(page);
-      return;
-    }
-    setIsAnimating(true);
-    setTimeout(() => {
-      navigate(page);
-      setIsAnimating(false);
-    }, 2500);
-  };
-
-  const openEmailClient = () => {
-    window.location.href = 'mailto:123@gmail.com';
+    navigate(page);
   };
 
   return (
     <div className={styles.homePageContainer}>
-      <LoadingAnimation shouldShow={isAnimating}>
-        <main className={styles.main}>
-          {userProfilePic && (
-            <div className={styles.profilePicContainer}>
+      {/* Header - Fixed Navbar */}
+      <header className={styles.navbar}>
+        <div className={styles.navbarContent}>
+          <div className={styles.logoContainer}>
+            <img src="/logo.png" alt="Logo" className={styles.logo} />
+            <h1 className={styles.brandName}>Bonitique</h1>
+          </div>
+          
+          <div className={styles.searchContainer}>
+            <input 
+              type="text" 
+              placeholder="חיפוש..." 
+              className={styles.searchInput} 
+            />
+            <button className={styles.searchButton}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className={styles.mainContent}>
+        {/* Hero Section with Welcome */}
+        <section className={styles.heroSection}>
+          <div className={styles.heroContent}>
+            <div className={styles.welcomeText}>
+              <h2 className={styles.greeting}>שלום {userName}, מה נשמע?</h2>
+              <button 
+                className={styles.scanButton}
+                onClick={() => handleNavigation('/Scan-Camera')}
+              >
+                לסריקה
+              </button>
+            </div>
+            <div className={styles.heroImageContainer}>
               <img 
-                src={userProfilePic} 
-                alt="Profile" 
-                className={styles.profilePic} 
+                src="../../public/Image/unnamed.png" 
+                alt="Wardrobe" 
+                className={styles.heroImage} 
               />
             </div>
-          )}
-          <h1 className={styles.title}>Hello {userName} and welcome to the home</h1>
-          <p className={styles.subtitle}>בחר פעולה להמשך:</p>
-          <div className={styles.actions}>
-            <FirstButton onClick={() => handleNavigation('/Scan-Camera')}>
-              לסריקה
-            </FirstButton>
-            <FirstButton onClick={() => handleNavigation('/Sugges')}>
-              ליצירת שילוב
-            </FirstButton>
-            <FirstButton onClick={() => handleNavigation('/clothes')}>
-              לכל הבגדים
-            </FirstButton>
           </div>
-          <div className={styles.searchBox}>
-            <Search />
+        </section>
+
+        {/* Clothing Items Grid */}
+        <section className={styles.clothingSection}>
+          <div className={styles.gridContainer}>
+            {items.map(({ id, image, text }) => (
+              <div 
+                key={id} 
+                className={styles.gridItem}
+                onClick={() => handleNavigation('/Scan-Camera')}
+              >
+                <img src={image} alt={text} className={styles.gridImage} />
+                <p className={styles.gridText}>{text}</p>
+              </div>
+            ))}
           </div>
-        </main>
-      </LoadingAnimation>
-      
+        </section>
+      </main>
+
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <p>© 2025 נבנה בידי פרידי ברזילי ואתי גוטליב. כל הזכויות שמורות.</p>
           <div className={styles.footerLinks}>
             <a 
-              href="mailto:123@gmail.com" 
-              onClick={openEmailClient} 
+              href="mailto:bonitique.customer.service@gmail.com" 
               className={styles.footerLink}
             >
               השאר פניה

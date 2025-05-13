@@ -1,0 +1,23 @@
+[
+    {
+      "id": 1,
+      "image": "/Image/Clothing1.png",
+      "text": "שמלה אדומה"
+    },
+    {
+      "id": 2,
+      "image": "/Image/Clothing2.png",
+      "text": "חולצה כחולה"
+    },
+    {
+      "id": 3,
+      "image": "/Image/Clothing3.png",
+      "text": "מכנסיים שחורות"
+    },
+    {
+      "id": 4,
+      "image": "/Image/Clothing4.png",
+      "text": "ז׳קט ירוק"
+    }
+  ]
+  
