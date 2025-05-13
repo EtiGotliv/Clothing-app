@@ -1,69 +1,31 @@
-/*const express = require('express');
-const { add, get } = require('../data/user');
-const { createJSONToken, isValidPassword } = require('../util/auth');
-const { isValidEmail, isValidText } = require('../util/validation');
-import jwt from 'jsonwebtoken';
+import { User, connectDB } from '../../config/MongoDB.mjs';
 
-
-const router = express.Router();
-
-router.post('/signup', async (req, res, next) => {
-  const data = req.body;
-  let errors = {};
-
-  if (!isValidEmail(data.email)) {
-    errors.email = 'Invalid email.';
-  } else {
-    try {
-      const existingUser = await get(data.email);
-      if (existingUser) {
-        errors.email = 'Email exists already.';
-      }
-    } catch (error) {}
-  }
-
-  if (!isValidText(data.password, 6)) {
-    errors.password = 'Invalid password. Must be at least 6 characters long.';
-  }
-
-  if (Object.keys(errors).length > 0) {
-    return res.status(422).json({
-      message: 'User signup failed due to validation errors.',
-      errors,
-    });
-  }
-
+export const loginUser = async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const createdUser = await add(data);
-    const authToken = createJSONToken(createdUser.email);
-    res.status(201).json({ message: 'User created.',
-                            user: createdUser, token: authToken });
+    const user = await User.findOne({ email, password });
+    if (user) {
+      return res.json({ status: "success", userId: user._id, name: user.name });
+    } else {
+      return res.json({ status: "notexist" });
+    }
   } catch (error) {
-    next(error);
+    console.error(error);
+    return res.json({ status: "fail" });
   }
-});
+};
 
-router.post('/login', async (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-
-  let user;
+export const signupUser = async (req, res) => {
+  const { name, email, password } = req.body;
   try {
-    user = await get(email);
+    const check = await User.findOne({ email });
+    if (check) {
+      return res.json("exist");
+    }
+    const newUser = await User.create({ name, email, password });
+    return res.json({ status: "success", userId: newUser._id });
   } catch (error) {
-    return res.status(401).json({ message: 'Authentication failed.' });
+    console.error(error);
+    return res.json({ status: "fail", error: error.message });
   }
-
-  const pwIsValid = await isValidPassword(password, user.password);
-  if (!pwIsValid) {
-    return res.status(422).json({
-      message: 'Invalid credentials.',
-      errors: { credentials: 'Invalid email or password entered.' },
-    });
-  }
-
-  const token = createJSONToken(email);
-  res.json({ token });
-});
-
-module.exports = router;*/
+};

@@ -1,6 +1,6 @@
 // src/components/Login/Login.jsx
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../AuthForm/AuthForm.module.css";
 
@@ -33,7 +33,7 @@ function Login() {
   async function submit(e) {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:8080/", { email, password });
+      const res = await axios.post("http://localhost:8080/api/auth/login", { email, password });
 
       if (res.data.status === "success") {
         const { userId, name } = res.data;
