@@ -10,6 +10,9 @@ import styles from './styles/App.module.css';
 import CategoryPage from "./page/CategoryPage/CategoryPage";
 import Login from "./components/Login/Login";
 import Signup from "./components/Signup/Signup";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 function App() {
   return (
@@ -28,8 +31,12 @@ function App() {
           <Route path="/category/:categoryName" element={<CategoryPage />} />
           <Route path="/Sugges" element={<OutSugges />} />
           <Route path="/Scan-Camera" element={<ScanCloset />} />
+          {/* <Route path="/item/:id" element={<SingleItemPage />} /> */}
         </Routes>
       </main>
+
+      <ToastContainer position="top-right" autoClose={3000} />
+
 
       {/* <footer className={styles.footer}>
         <p>&copy; 2025 Myweb</p>

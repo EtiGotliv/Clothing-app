@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import styles from './ClothingItem.module.css';
+import { toast } from 'react-toastify';
+
 
 const ClothingItem = ({ item, refreshItems }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -20,10 +22,10 @@ const ClothingItem = ({ item, refreshItems }) => {
         await axios.delete(`http://localhost:8080/api/clothes/delete/${item._id}`, {
           headers: { 'x-user-id': localStorage.getItem('authToken') },
         });
-        alert('Item deleted successfully!');
+        toast.success('Item deleted successfully!');
         refreshItems();
       } catch (error) {
-        alert('Delete failed: ' + error.message);
+        toast.error('Delete failed: ' + error.message);
       }
     }
   };
@@ -36,11 +38,11 @@ const ClothingItem = ({ item, refreshItems }) => {
       }, {
         headers: { 'x-user-id': localStorage.getItem('authToken') },
       });
-      alert('Item updated successfully!');
+      toast.success('Item updated successfully!');
       setIsEditing(false);
       refreshItems();
     } catch (error) {
-      alert('Update failed: ' + error.message);
+      toast.error('Update failed: ' + error.message);
     }
   };
 
