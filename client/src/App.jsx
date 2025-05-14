@@ -31,9 +31,9 @@ function App() {
         </Routes>
       </main>
 
-      <footer className={styles.footer}>
+      {/* <footer className={styles.footer}>
         <p>&copy; 2025 Myweb</p>
-      </footer>
+      </footer> */}
     </BrowserRouter>
   );
 }
