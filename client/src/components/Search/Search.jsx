@@ -1,4 +1,3 @@
-// src/components/Search/Search.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
@@ -6,11 +5,11 @@ import "./Search.css";
 import LoadingAnimation from "../common/LoadingAnimation/LoadingAnimation";
 
 const Search = () => {
-  const [query, setQuery] = useState(""); 
-  const [debouncedQuery, setDebouncedQuery] = useState(""); 
-  const [results, setResults] = useState([]); 
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null); 
+  const [error, setError] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const navigate = useNavigate();
 
@@ -30,8 +29,6 @@ const Search = () => {
         headers: {
           "Content-Type": "application/json",
           "x-user-id": userId,
-          // "Authorization": `Bearer ${token}`,
-
         },
       })
         .then((res) => {
@@ -67,12 +64,12 @@ const Search = () => {
         <FaSearch id="search-icon" />
         <input
           type="text"
-          placeholder="Search clothing..."
+          placeholder="חיפוש פריט, קטגוריה, רעיון..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
-      {isAnimating && <LoadingAnimation shouldShow={isAnimating} />} 
+      {isAnimating && <LoadingAnimation shouldShow={isAnimating} />}
       {error && <div>❌ Error: {error}</div>}
       {loading && <div>Loading...</div>}
       {!isAnimating && results.length > 0 && (

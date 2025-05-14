@@ -1,23 +1,20 @@
-// src/page/HomePage/HomePage.jsx
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import items from '../../data/clothingItems.json';
 import styles from './HomePage.module.css';
+import md5 from 'md5';
 
 const HomePage = () => {
   const location = useLocation();
-  const [userProfilePic, setUserProfilePic] = useState(null);
   const navigate = useNavigate();
+  const [userProfilePic, setUserProfilePic] = useState(null);
 
-  // Get user ID and name from location state or localStorage
-  const userId = location.state?.id || localStorage.getItem("authToken");
-  const userName = location.state?.name || localStorage.getItem("userName") || "משתמש";
-  
-  // Fetch user profile picture from email
+  const userId = location.state?.id || localStorage.getItem('authToken');
+  const userName = location.state?.name || localStorage.getItem('userName') || "משתמש יקר";
+
   useEffect(() => {
-    const userEmail = localStorage.getItem("userEmail");
+    const userEmail = localStorage.getItem('userEmail');
     if (userEmail) {
-      // Use Gravatar service to fetch profile picture
       const gravatarHash = md5(userEmail.toLowerCase().trim());
       setUserProfilePic(`https://www.gravatar.com/avatar/${gravatarHash}?d=mp&s=200`);
     }
@@ -29,63 +26,46 @@ const HomePage = () => {
 
   return (
     <div className={styles.homePageContainer}>
-      {/* Header - Fixed Navbar */}
-      <header className={styles.navbar}>
-        <div className={styles.navbarContent}>
-          <div className={styles.logoContainer}>
-            <img src="/logo.png" alt="Logo" className={styles.logo} />
-            <h1 className={styles.brandName}>Bonitique</h1>
-          </div>
-          
-          <div className={styles.searchContainer}>
-            <input 
-              type="text" 
-              placeholder="חיפוש..." 
-              className={styles.searchInput} 
-            />
-            <button className={styles.searchButton}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </header>
-
       <main className={styles.mainContent}>
-        {/* Hero Section with Welcome */}
         <section className={styles.heroSection}>
           <div className={styles.heroContent}>
             <div className={styles.welcomeText}>
-              <h2 className={styles.greeting}>שלום {userName}, מה נשמע?</h2>
-              <button 
+              <h2 className={styles.greeting}>ברוכה הבאה, {userName}!</h2>
+              <p className={styles.introText}>
+                בואי נגלה יחד איך להפוך כל בגד בארון שלך לסטייל מנצח ✨
+              </p>
+              <button
                 className={styles.scanButton}
                 onClick={() => handleNavigation('/Scan-Camera')}
               >
-                לסריקה
+                התחל/י סריקה
               </button>
             </div>
             <div className={styles.heroImageContainer}>
-              <img 
-                src="../../public/Image/unnamed.png" 
-                alt="Wardrobe" 
-                className={styles.heroImage} 
+              <img
+                src="/Image/unnamed.png"
+                alt="Wardrobe Inspiration"
+                className={styles.heroImage}
               />
             </div>
           </div>
         </section>
 
-        {/* Clothing Items Grid */}
         <section className={styles.clothingSection}>
+          <h2 className={styles.sectionTitle}>בחרי קטגוריה להתחיל איתה</h2>
           <div className={styles.gridContainer}>
-            {items.map(({ id, image, text }) => (
-              <div 
-                key={id} 
-                className={styles.gridItem}
-                onClick={() => handleNavigation('/Scan-Camera')}
-              >
-                <img src={image} alt={text} className={styles.gridImage} />
-                <p className={styles.gridText}>{text}</p>
+            {items.map(({ id, image, text, link }) => (
+              <div key={id} className={styles.gridItem}>
+                <div className={styles.imageWrapper}>
+                  <img src={image} alt={text} className={styles.gridImage} />
+                  <div className={styles.imageOverlay}></div>
+                  <button
+                    className={styles.gridButton}
+                    onClick={() => navigate(link)}
+                  >
+                    {text}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -94,28 +74,15 @@ const HomePage = () => {
 
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
-          <p>© 2025 נבנה בידי פרידי ברזילי ואתי גוטליב. כל הזכויות שמורות.</p>
+          <p>© 2025 נוצר באהבה על ידי פרידי ברזילי ואתי גוטליב | כל הזכויות שמורות</p>
           <div className={styles.footerLinks}>
-            <a 
-              href="mailto:bonitique.customer.service@gmail.com" 
-              className={styles.footerLink}
-            >
-              השאר פניה
+            <a href="mailto:bonitique.customer.service@gmail.com" className={styles.footerLink}>
+              צור קשר
             </a>
-            <a 
-              href="https://www.instagram.com" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className={styles.footerLink}
-            >
+            <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
               Instagram
             </a>
-            <a 
-              href="https://www.facebook.com" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className={styles.footerLink}
-            >
+            <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
               Facebook
             </a>
           </div>

@@ -1,23 +1,26 @@
 [
-    {
-      "id": 1,
-      "image": "/Image/Clothing1.png",
-      "text": "שמלה אדומה"
-    },
-    {
-      "id": 2,
-      "image": "/Image/Clothing2.png",
-      "text": "חולצה כחולה"
-    },
-    {
-      "id": 3,
-      "image": "/Image/Clothing3.png",
-      "text": "מכנסיים שחורות"
-    },
-    {
-      "id": 4,
-      "image": "/Image/Clothing4.png",
-      "text": "ז׳קט ירוק"
-    }
-  ]
-  
+  {
+    "id": 1,
+    "image": "/Image/scanclothes.png",
+    "text": "סריקה",
+    "link": "/Scan-Camera"
+  },
+  {
+    "id": 2,
+    "image": "/Image/myclothes.png",
+    "text": "הבגדים שלי",
+    "link": "/clothes"
+  },
+  {
+    "id": 3,
+    "image": "/Image/myclothes.png",
+    "text": "המלצות שילוב",
+    "link": "/Sugges"
+  },
+  {
+    "id": 4,
+    "image": "/Image/dailytip.png",
+    "text": "הטיפ היומי",
+    "link": "/dailytip"
+  }
+]
