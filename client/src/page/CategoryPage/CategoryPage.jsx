@@ -1,6 +1,5 @@
-// src/page/CategoryPage/CategoryPage.jsx
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import LoadingAnimation from "../../components/common/LoadingAnimation/LoadingAnimation.jsx";
 import styles from "./CategoryPage.module.css";
 
@@ -9,18 +8,16 @@ const CategoryPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
     const token = localStorage.getItem("authToken");
-    console.log("Token from localStorage:", token);
 
-    
     fetch(`http://localhost:8080/api/clothes/search?query=${encodeURIComponent(categoryName)}`, {
       headers: {
         "Content-Type": "application/json",
         "x-user-id": token,
-        // "Authorization": `Bearer ${token}`,
       },
     })
       .then((res) => {
@@ -40,17 +37,32 @@ const CategoryPage = () => {
   }, [categoryName]);
 
   if (loading) return <LoadingAnimation shouldShow={true} />;
-  if (error) return <div>❌ Error: {error}</div>;
-  if (!items || items.length === 0) return <div>אין בגדים להצגה</div>;
+  if (error) return <div className={styles.error}>❌ שגיאה: {error}</div>;
+
+  if (!items || items.length === 0)
+    return (
+      <div className={styles.noResults}>
+        <span role="img" aria-label="no-clothes" className={styles.noResultsIcon}>😥</span>
+        <p>אין בגדים להצגה</p>
+        <small>נסו לחפש קטגוריה אחרת</small>
+        <button className={styles.backButton} onClick={() => navigate('/home')}>
+          חזרה לדף הבית
+        </button>
+      </div>
+    );
 
   return (
     <div className={styles.categoryPage}>
-      <h2>קטגוריה: {categoryName}</h2>
-      <ul className={`${styles.itemsGrid} results-list`}>
+      <h2 className={styles.categoryTitle}>
+        קטגוריה: <span>{categoryName}</span>
+      </h2>
+      <ul className={styles.itemsGrid}>
         {items.map((item) => (
           <li key={item._id} className={styles.itemCard}>
-            <img src={item.image} alt={item.name} />
-            <p>{item.name}</p>
+            <div className={styles.imageWrapper}>
+              <img src={item.image} alt={item.name} />
+            </div>
+            <p className={styles.itemName}>{item.name}</p>
           </li>
         ))}
       </ul>

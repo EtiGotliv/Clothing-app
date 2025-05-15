@@ -109,7 +109,7 @@ const Header = () => {
       {showSearch && (
         <div ref={searchRef} className="fixed top-20 left-0 right-0 z-40 flex justify-center bg-[#fff7f0] py-4 shadow-md animate-fadeIn">
           <div className="w-full max-w-2xl px-4">
-            <Search />
+            <Search onClose={() => setShowSearch(false)} />
           </div>
         </div>
       )}
