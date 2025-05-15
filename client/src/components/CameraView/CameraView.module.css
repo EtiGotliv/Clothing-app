@@ -1,76 +1,96 @@
+* {
+  box-sizing: border-box;
+}
+
 .cameraViewContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: #fff3e9;
+  min-height: 100vh;
 }
 
 .cameraPreview {
-    width: 100%;
-    max-width: 640px;
-    height: auto;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    background-color: black;
-    overflow: hidden;
-    margin-left: auto;
-    margin-right: auto;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  border-radius: 24px;
+  margin-bottom: 2rem;
+  background-color: black;
+  overflow: hidden;
+  border: 5px solid #f2c9a5;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .captureOptions {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
-    width: 100%;
-    max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  max-width: 400px;
+  align-items: center;
 }
 
 .captureButton {
-    background-color: #e91e63;
-    color: white;
-    border: none;
-    border-radius: 30px;
-    padding: 0.8rem 2rem;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #cc8a5a, #b56e3d);
+  color: white;
+  border: none;
+  border-radius: 40px;
+  padding: 1.2rem 2.5rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Rubik', sans-serif;
+  width: 240px;
+  text-align: center;
+  font-weight: bold;
+  letter-spacing: 0.7px;
+  box-shadow: 0 6px 18px rgba(204, 138, 90, 0.4);
 }
 
 .captureButton:hover {
-    background-color: #d81b60;
+  background: linear-gradient(135deg, #b56e3d, #a55a2c);
+  transform: scale(1.05);
+  box-shadow: 0 8px 22px rgba(204, 138, 90, 0.5);
 }
 
 .captureButton:disabled {
-    background-color: #bdbdbd;
-    cursor: not-allowed;
-}
-
-.captureButtonInner, .uploadButtonInner {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 9999px;
-    background-color: white;
-}
-
-.captureButtonActive {
-    transform: scale(0.95);
-    background-color: rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #ddd, #ccc);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .uploadContainer {
-    margin-top: 1rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
 }
 
 .uploadLabel {
-    color: #5c6bc0;
-    text-decoration: underline;
-    cursor: pointer;
-    font-size: 1rem;
+  color: #cc8a5a;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: bold;
+  font-family: 'Rubik', sans-serif;
 }
 
 .fileInput {
-    display: none;
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .cameraPreview {
+    border-radius: 20px;
+  }
+
+  .captureButton {
+    width: 200px;
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+  }
 }

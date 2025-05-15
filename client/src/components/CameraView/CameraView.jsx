@@ -18,16 +18,15 @@ const CameraView = ({ videoRef, onCapture, onUpload, isCapturing }) => {
           className={styles.captureButton}
           disabled={isCapturing}
         >
-          {isCapturing ? 'מעבד...' : '📷 צלם תמונה'}
+          {isCapturing ? 'מעבד...' : ' צלם תמונה'}
         </button>
         
         <div className={styles.uploadContainer}>
           <button 
             onClick={() => document.getElementById('fileUpload').click()} 
             className={styles.captureButton}
-            style={{ backgroundColor: '#5c6bc0' }}
           >
-            🖼️ העלה תמונה
+             העלה תמונה
           </button>
           <input
             id="fileUpload"

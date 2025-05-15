@@ -31,14 +31,14 @@ function ScanCloset() {
     setAiStatus,
     setSaveStatus
   );
-  
+
   const handleNewCapture = () => {
     setFormData({ name: '', color: '', tags: '', image: null });
     setSaveStatus('');
     setAiStatus('');
     setCapturedImage(null);
     setShowCamera(true);
-    
+
     setTimeout(() => {
       startCamera();
     }, 100);
@@ -48,12 +48,19 @@ function ScanCloset() {
     setFormData({ name: '', color: '', tags: '', image: null });
     setSaveStatus('');
     setAiStatus('');
+    setCapturedImage(null);
+    setShowCamera(false);
     handleUpload(e);
   };
 
+  const isItemSaved = saveStatus.includes('✅') || saveStatus.includes('נשמר') || saveStatus.includes('נשמר בהצלחה');
+
   return (
     <div className={styles.cameraContainer}>
-      <h2 className={styles.pageTitle}>?פריט חדש קנית</h2>
+      {!isItemSaved && (
+        <h2 className={styles.pageTitle}>?קנית פריט חדש</h2>
+      )}
+
       {showCamera && !capturedImage ? (
         <CameraView
           videoRef={videoRef}
@@ -74,6 +81,7 @@ function ScanCloset() {
           onNewUpload={handleNewUpload}
         />
       )}
+      
       <ScanCanvas canvasRef={canvasRef} />
     </div>
   );
