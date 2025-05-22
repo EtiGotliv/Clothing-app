@@ -13,10 +13,10 @@ export async function analyzeClothingImage(base64Image) {
         role: "system",
         content: `You are an assistant that analyzes clothing images. 
 Return a JSON object with the following fields:
-- name (e.g., shirt, tank top, pants, dress)
+- name (e.g., shirt, skirt, pants, dress)
 - color (e.g., white, black, blue, red)
 - season (spring, summer, fall, winter)
-- event (casual, work, evening, sport, elegant)
+- event (casual, evening, sport, elegant)
 
 For the color field:
 - If the item has multiple colors, list all the main colors separated by commas (e.g., "white, blue, red")

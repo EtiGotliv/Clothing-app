@@ -4,9 +4,44 @@ import multer from 'multer';
 import Clothing from '../../config/models/allClothing.js';
 import { analyzeClothingImage } from '../services/openaiService.js';
 import { suggestOutfitFromClothingDB } from '../controllers/clothingController.js';
+import { VALID_TYPES, TYPE_MAP, MAX_COLORS, IGNORED_COLOR_TERMS } from '../../config/clothingConfig.js';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+function mapToValidType(type) {
+  if (!type) return null;
+  if (VALID_TYPES.includes(type)) return type;
+  if (TYPE_MAP[type]) return TYPE_MAP[type];
+
+  const normalized = type.toLowerCase();
+
+  for (const validType of VALID_TYPES) {
+    if (normalized.includes(validType.toLowerCase())) {
+      return validType;
+    }
+  }
+
+  for (const [key, mapped] of Object.entries(TYPE_MAP)) {
+    if (normalized.includes(key.toLowerCase())) {
+      return mapped;
+    }
+  }
+
+  return null;
+}
+
+function extractMainColors(colorString) {
+  if (!colorString) return [];
+  const colorList = colorString
+    .split(',')
+    .map(c => c.trim().toLowerCase())
+    .filter(c =>
+      c.length > 0 &&
+      !IGNORED_COLOR_TERMS.some(term => c.includes(term))
+    );
+  return colorList.slice(0, MAX_COLORS);
+}
 
 export function checkAuthMiddleware(req, res, next) {
   const userId = req.headers['x-user-id'];
@@ -26,23 +61,31 @@ router.post("/analyze", upload.single("file"), async (req, res) => {
   try {
     const result = await analyzeClothingImage(base64Image);
     console.log("Raw AI result:", result);
-    
+
     try {
       let cleanResult = result;
-      
+
       if (result.includes('```')) {
         cleanResult = result.replace(/```(json|jsoon|javascript)?\n/, '');
         cleanResult = cleanResult.replace(/```\s*$/, '');
       }
-      
-      console.log("Cleaned result:", cleanResult);
-      
+
       const parsed = JSON.parse(cleanResult);
-      return res.json(parsed);
+      const mappedType = mapToValidType(parsed.name);
+      const cleanedColors = extractMainColors(parsed.color);
+
+      return res.json({
+        name: mappedType || "",
+        color: cleanedColors.join(", "),
+        season: parsed.season,
+        event: parsed.event,
+        needsManualInput: !mappedType || cleanedColors.length === 0
+      });
+
     } catch (err) {
       console.warn("⚠️ Failed to parse AI result:", err.message);
       console.log("Result received:", result);
-      return res.json({ name: "", color: "", season: "", event: "" });
+      return res.json({ name: "", color: "", season: "", event: "", needsManualInput: true });
     }
   } catch (error) {
     console.error("❌ AI error:", error);
@@ -99,6 +142,7 @@ router.delete('/delete/:id', checkAuthMiddleware, async (req, res) => {
     res.status(500).json({ message: "Delete failed", error: error.message });
   }
 });
+
 router.put('/update/:id', checkAuthMiddleware, async (req, res) => {
   const { id } = req.params;
   const { name, color, image, tags } = req.body;
@@ -123,7 +167,6 @@ router.put('/update/:id', checkAuthMiddleware, async (req, res) => {
     res.status(500).json({ success: false, message: "Update failed", error: error.message });
   }
 });
-
 
 router.get('/suggest-outfit-from-db', checkAuthMiddleware, suggestOutfitFromClothingDB);
 
