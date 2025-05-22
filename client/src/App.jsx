@@ -8,6 +8,7 @@ import Dailytip from "./page/Dailytip/Dailytip";
 import Header from "./components/Header/Header";
 import styles from './styles/App.module.css';
 import CategoryPage from "./page/CategoryPage/CategoryPage";
+import ClothingDetailsPage from "./page/ClothingDetailsPage/ClothingDetailsPage";
 import Login from "./components/Login/Login";
 import Signup from "./components/Signup/Signup";
 import { ToastContainer } from 'react-toastify';
@@ -26,6 +27,7 @@ function App() {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/dailytip" element={<Dailytip />} />
           <Route path="/clothes" element={<MyClothe />} />
+          <Route path="/clothing-details/:id" element={<ClothingDetailsPage />} />
           <Route path="/category/:categoryName" element={<CategoryPage />} />
           <Route path="/Sugges" element={<OutSugges />} />
           <Route path="/Scan-Camera" element={<ScanCloset />} />
