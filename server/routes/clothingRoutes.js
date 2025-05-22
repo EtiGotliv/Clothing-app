@@ -130,6 +130,24 @@ router.get("/search", checkAuthMiddleware, async (req, res) => {
   res.json(results);
 });
 
+// New route to get single clothing item - must be after /search
+router.get('/:id', checkAuthMiddleware, async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid ID" });
+  }
+
+  try {
+    const item = await Clothing.findOne({ _id: id, user: req.userId });
+    if (!item) {
+      return res.status(404).json({ message: "Item not found or unauthorized" });
+    }
+    res.json(item);
+  } catch (error) {
+    res.status(500).json({ message: "Fetch failed", error: error.message });
+  }
+});
+
 router.delete('/delete/:id', checkAuthMiddleware, async (req, res) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ message: "Invalid ID" });
