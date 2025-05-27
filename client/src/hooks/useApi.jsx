@@ -7,13 +7,12 @@ const useApi = (url) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem('authToken'); // קבלת ה-token מ-localStorage
+      const token = localStorage.getItem('authToken');
 
       try {
-        const response = await fetch(url,{
-
-         headers: {
-            'Authorization': `Bearer ${token}`, // שליחה של ה-token עם כל בקשה
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
           },
         });
 

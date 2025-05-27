@@ -9,17 +9,14 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // הוספת קלאס לבודי בטעינת הקומפוננטה
   useEffect(() => {
-    // הוספת class לבודי בלי לפגוע בשאר ההגדרות
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     document.body.style.overflow = 'hidden';
     document.documentElement.style.margin = '0';
     document.documentElement.style.padding = '0';
     document.documentElement.style.overflow = 'hidden';
-    
-    // ניקוי בעת עזיבת הקומפוננטה
+
     return () => {
       document.body.style.margin = '';
       document.body.style.padding = '';
@@ -37,8 +34,12 @@ function Login() {
 
       if (res.data.status === "success") {
         const { userId, name } = res.data;
+
+        // 🔐 שמירה מלאה של נתוני המשתמש
         localStorage.setItem("authToken", userId);
+        localStorage.setItem("userId", userId);     // ✅ נוספה השמירה הזו
         localStorage.setItem("userName", name);
+
         navigate("/home", { state: { id: userId, name } });
       } else {
         alert("User does not exist");

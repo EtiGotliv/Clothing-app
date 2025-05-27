@@ -5,7 +5,8 @@ export const TYPE_MAP = {
   "Blouse": "Shirt",
   "Top": "Shirt",
   "Robe": "Dress",
-  "Jeans": "Pants",
+  "Pants": "Pants",
+  "Jeans": "Jeans",
   "Jacket": "Hoodie",
   "Pullover": "Sweater"
 };

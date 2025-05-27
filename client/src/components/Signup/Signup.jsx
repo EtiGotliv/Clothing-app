@@ -10,17 +10,14 @@ function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // הוספת סגנונות ישירות לבודי בטעינת הקומפוננטה
   useEffect(() => {
-    // הוספת סגנונות ישירות בלי לשנות מחלקות
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     document.body.style.overflow = 'hidden';
     document.documentElement.style.margin = '0';
     document.documentElement.style.padding = '0';
     document.documentElement.style.overflow = 'hidden';
-    
-    // ניקוי בעת עזיבת הקומפוננטה
+
     return () => {
       document.body.style.margin = '';
       document.body.style.padding = '';
@@ -40,8 +37,9 @@ function Signup() {
 
       if (res.data.status === "success") {
         const userId = res.data.userId;
-        localStorage.setItem("authToken", userId);
-        localStorage.setItem("userName", name);
+        localStorage.setItem("authToken", userId);    
+        localStorage.setItem("userId", userId);      
+        localStorage.setItem("userName", name); 
         navigate("/home", { state: { id: userId, name } });
       } else if (res.data.status === "exist") {
         alert("User already exists");

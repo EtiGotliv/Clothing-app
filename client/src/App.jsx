@@ -5,6 +5,7 @@ import OutSugges from "./page/OutSugges/OutSugges";
 import ScanCloset from "./page/ScanCloset/ScanCloset";
 import AboutUs from "./page/AboutUs/AboutUs";
 import Dailytip from "./page/Dailytip/Dailytip";
+import Favorites from "./page/user/Favorites";
 import Header from "./components/Header/Header";
 import styles from './styles/App.module.css';
 import CategoryPage from "./page/CategoryPage/CategoryPage";
@@ -27,6 +28,7 @@ function App() {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/dailytip" element={<Dailytip />} />
           <Route path="/clothes" element={<MyClothe />} />
+          <Route path="/favorites" element={<Favorites />} />
           <Route path="/clothing-details/:id" element={<ClothingDetailsPage />} />
           <Route path="/category/:categoryName" element={<CategoryPage />} />
           <Route path="/Sugges" element={<OutSugges />} />

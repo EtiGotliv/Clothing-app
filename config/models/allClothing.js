@@ -1,4 +1,4 @@
-// config/models/allClothing.js
+
 import mongoose from 'mongoose';
 
 const clothingSchema = new mongoose.Schema({
@@ -11,6 +11,16 @@ const clothingSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  category: {
+    type: String,
+    required: true
+  },
+  season: {
+    type: String
+  },
+  event: {
+    type: String
+  },
   tags: {
     type: [String],
     default: []
@@ -18,6 +28,9 @@ const clothingSchema = new mongoose.Schema({
   image: {
     type: String,
     required: true
+  },
+  image_no_bg: {
+    type: String
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -29,7 +42,6 @@ const clothingSchema = new mongoose.Schema({
     default: Date.now
   }
 });
-
 
 const Clothing = mongoose.models.Clothing || mongoose.model('Clothing', clothingSchema);
 

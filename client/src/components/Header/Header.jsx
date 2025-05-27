@@ -47,9 +47,7 @@ const Header = () => {
 
   const hideHeader = location.pathname === "/" || location.pathname === "/Signup";
 
-  if (hideHeader) {
-    return null;
-  }
+  if (hideHeader) return null;
 
   return (
     <>
