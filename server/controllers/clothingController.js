@@ -50,11 +50,55 @@ export async function analyzeAndParseImage(req, res) {
     const mappedType = mapToValidType(parsed.name);
     const cleanedColors = extractMainColors(parsed.color);
 
+    // יצירת תגיות אוטומטיות
+    const tags = [];
+    
+    // הוספת תגית סגנון
+    if (parsed.style) {
+      const style = parsed.style.toLowerCase();
+      if (style === 'casual' || style === 'elegant') {
+        tags.push(style);
+      }
+    }
+    
+    // הוספת תגיות לפי סוג האירוע
+    if (parsed.event) {
+      const event = parsed.event.toLowerCase();
+      if (event.includes('event') || event.includes('work')) {
+        if (!tags.includes('elegant')) {
+          tags.push('elegant');
+        }
+      } else if (event.includes('weekday') || event.includes('casual')) {
+        if (!tags.includes('casual')) {
+          tags.push('casual');
+        }
+      }
+    }
+    
+    // אם לא נמצא סגנון, נסה לנחש לפי סוג הבגד
+    if (tags.length === 0) {
+      const casualTypes = ['t-shirt', 'jeans', 'shorts', 'hoodie', 'sneakers', 'sandals'];
+      const elegantTypes = ['dress', 'suit', 'blazer', 'formal', 'shirt', 'skirt', 'heels'];
+      
+      const itemType = (parsed.name || '').toLowerCase();
+      
+      if (casualTypes.some(type => itemType.includes(type))) {
+        tags.push('casual');
+      } else if (elegantTypes.some(type => itemType.includes(type))) {
+        tags.push('elegant');
+      } else {
+        // ברירת מחדל - casual
+        tags.push('casual');
+      }
+    }
+
     return res.json({
       name: mappedType || "",
       color: cleanedColors.join(", "),
-      season: parsed.season,
-      event: parsed.event,
+      season: parsed.season || "Summer",
+      event: parsed.event || "Weekday",
+      style: parsed.style || (tags.includes('elegant') ? 'elegant' : 'casual'),
+      tags: tags,
       needsManualInput: !mappedType || cleanedColors.length === 0
     });
 
@@ -66,17 +110,37 @@ export async function analyzeAndParseImage(req, res) {
 
 // פונקציה חדשה ליצירת בגד
 export async function createClothing(req, res) {
-  const { name, color, tags, image, category, season, event } = req.body;
+  const { name, color, tags, image, category, season, event, style } = req.body;
   
   if (!name || !image) {
     return res.status(400).json({ message: "Missing required fields: name and image" });
   }
 
   try {
+    // וידוא שיש תגיות מתאימות
+    let finalTags = Array.isArray(tags) ? [...tags] : [];
+    
+    // אם לא נמצאו תגיות casual/elegant, הוסף לפי הסגנון או ברירת מחדל
+    const hasCasualOrElegant = finalTags.some(tag => 
+      tag.toLowerCase() === 'casual' || tag.toLowerCase() === 'elegant'
+    );
+    
+    if (!hasCasualOrElegant) {
+      if (style) {
+        const styleTag = style.toLowerCase();
+        if (styleTag === 'casual' || styleTag === 'elegant') {
+          finalTags.push(styleTag);
+        }
+      } else {
+        // ברירת מחדל - casual
+        finalTags.push('casual');
+      }
+    }
+
     const newClothing = new Clothing({
       name,
       color: color || '',
-      tags: Array.isArray(tags) ? tags : [],
+      tags: finalTags,
       image,
       category: category || name,
       season: season || 'Summer',
@@ -91,7 +155,8 @@ export async function createClothing(req, res) {
         id: saved._id, 
         name: saved.name,
         color: saved.color,
-        category: saved.category
+        category: saved.category,
+        tags: saved.tags
       } 
     });
   } catch (error) {
@@ -186,7 +251,7 @@ export async function deleteClothing(req, res) {
 // פונקציה לעדכון בגד
 export async function updateClothing(req, res) {
   const { id } = req.params;
-  const { name, color, image, tags, category, season, event } = req.body;
+  const { name, color, image, tags, category, season, event, style } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ success: false, message: "Invalid ID format" });
@@ -197,10 +262,31 @@ export async function updateClothing(req, res) {
     if (name) updateData.name = name;
     if (color !== undefined) updateData.color = color;
     if (image) updateData.image = image;
-    if (tags !== undefined) updateData.tags = Array.isArray(tags) ? tags : [];
     if (category) updateData.category = category;
     if (season) updateData.season = season;
     if (event) updateData.event = event;
+    
+    if (tags !== undefined) {
+      let finalTags = Array.isArray(tags) ? [...tags] : [];
+      
+      // וידוא שיש תגית casual או elegant
+      const hasCasualOrElegant = finalTags.some(tag => 
+        tag.toLowerCase() === 'casual' || tag.toLowerCase() === 'elegant'
+      );
+      
+      if (!hasCasualOrElegant) {
+        if (style) {
+          const styleTag = style.toLowerCase();
+          if (styleTag === 'casual' || styleTag === 'elegant') {
+            finalTags.push(styleTag);
+          }
+        } else {
+          finalTags.push('casual');
+        }
+      }
+      
+      updateData.tags = finalTags;
+    }
 
     const updatedItem = await Clothing.findOneAndUpdate(
       { _id: id, user: req.userId },

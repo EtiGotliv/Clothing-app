@@ -16,14 +16,19 @@ export async function analyzeClothingImage(base64Image) {
           {
             "name": "clothing type (Shirt/Pants/Dress/Skirt/Shoes/Accessories)",
             "color": "main colors separated by commas",
-            "season": "Summer/Winter/Fall/Spring",
-            "event": "Weekday/Event/Work"
-          }`
+            "season": "Summer/Winter/Fall/Spring", 
+            "event": "Weekday/Event/Work",
+            "style": "casual/elegant"
+          }
+          
+          Style Guidelines:
+          - "elegant": formal wear, evening wear, business suits, dressy dresses, blazers, dress shirts, high heels, formal shoes, jewelry, ties, fancy blouses, cocktail dresses, formal skirts
+          - "casual": t-shirts, jeans, sneakers, hoodies, casual tops, shorts, casual dresses, sandals, casual pants, polo shirts, casual skirts, everyday wear`
         },
         {
           role: "user",
           content: [
-            { type: "text", text: "Analyze this clothing item:" },
+            { type: "text", text: "Analyze this clothing item and determine if it's casual or elegant:" },
             {
               type: "image_url",
               image_url: { url: `data:image/jpeg;base64,${base64Image}` }
@@ -41,50 +46,63 @@ export async function analyzeClothingImage(base64Image) {
   }
 }
 
-export async function suggestLookWithOpenAI(wardrobe, stylePreference = "Weekday") {
+export async function suggestLookWithOpenAI(wardrobe, stylePreference = "casual") {
   if (!wardrobe || wardrobe.length === 0) {
     throw new Error("ארון הבגדים ריק");
   }
 
-  const systemMessage = `אתה סטייליסט אישי. עליך לבחור לוק שמתאים לסגנון "${stylePreference}" מתוך רשימת בגדים.
+  const styleInHebrew = stylePreference === "casual" ? "יום יומי" : "אלגנטי";
+  
+  const systemMessage = `אתה סטייליסט אישי מקצועי. עליך לבחור לוק ${styleInHebrew} מתוך רשימת בגדים.
 
-חוקים:
+חוקים חשובים:
 - רק אחת מהאופציות הבאות:
-  * שמלה (Dress)
-  * חולצה + חצאית
-  * חולצה + מכנסיים
-- אין גם חצאית וגם מכנסיים
-- רק פריט אחד מכל סוג (חוץ מאקססוריז)
-- החזר מערך JSON של מזהי פריטים בלבד (ללא הסברים): ["id1", "id2", "id3"]`;
+  * שמלה בלבד (Dress/Robe)
+  * חולצה + חצאית (Top + Skirt)
+  * חולצה + מכנסיים (Top + Pants/Jeans/Shorts)
+- אסור לשלב חצאית ומכנסיים יחד
+- רק פריט אחד מכל קטגוריה (חוץ מאקססוריז)
+- בחר פריטים שמתאימים לסגנון ${styleInHebrew}
+- החזר מערך JSON של מזהי פריטים בלבד: ["id1", "id2", "id3"]
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      { role: "system", content: systemMessage },
-      {
-        role: "user",
-        content: `הארון שלי:
-${JSON.stringify(wardrobe, null, 2)}`
-      }
-    ],
-    temperature: 0.7,
-    max_tokens: 300,
-  });
-
-  const content = response.choices[0].message.content.trim();
-  const clean = content.replace(/```json|```/g, "").trim();
+דוגמאות:
+- לוק יום יומי: חולצת טי + ג'ינס, או שמלה קזואל
+- לוק אלגנטי: חולצה מכופתרת + חצאית, או שמלת ערב`;
 
   try {
-    const parsed = JSON.parse(clean);
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      throw new Error("AI לא החזיר מערך תקין");
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemMessage },
+        {
+          role: "user",
+          content: `הארון שלי (${styleInHebrew}):
+${JSON.stringify(wardrobe, null, 2)}`
+        }
+      ],
+      temperature: 0.8, // הגדלת היצירתיות
+      max_tokens: 300,
+    });
+
+    const content = response.choices[0].message.content.trim();
+    const clean = content.replace(/```json|```/g, "").trim();
+
+    try {
+      const parsed = JSON.parse(clean);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        throw new Error("AI לא החזיר מערך תקין");
+      }
+      return parsed;
+    } catch (e) {
+      // ניסוי לחלץ ID-ים מהטקסט
+      const fallback = clean.match(/[a-f0-9]{24}/g);
+      if (fallback && fallback.length > 0) {
+        return fallback.slice(0, 4);
+      }
+      throw new Error("לא הצלחתי לפענח את תגובת ה-AI");
     }
-    return parsed;
-  } catch (e) {
-    const fallback = clean.match(/[a-f0-9]{24}/g);
-    if (fallback && fallback.length > 0) {
-      return fallback.slice(0, 4);
-    }
-    throw new Error("לא הצלחתי לפענח את תגובת ה-AI");
+  } catch (error) {
+    console.error("AI suggestion error:", error);
+    throw new Error("שגיאה בקבלת הצעה מה-AI");
   }
 }
