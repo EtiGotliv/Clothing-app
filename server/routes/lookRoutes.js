@@ -3,7 +3,12 @@ import {
   createSmartLookFromAI,
   getAllLooks,
   toggleFavoriteLook,
-  getFavoriteLooks
+  getFavoriteLooks,
+  deleteLook,
+  saveLookFeedback,         
+  getUserPreferenceStats,
+  getUserStats,    
+  updatePreferenceWeights   
 } from "../controllers/lookController.js";
 import verifyUser from "../middleware/verifyUser.js";
 
@@ -13,5 +18,9 @@ router.post("/smart", verifyUser, createSmartLookFromAI);
 router.get("/all", verifyUser, getAllLooks);
 router.get("/favorites", verifyUser, getFavoriteLooks);
 router.patch("/:lookId/favorite", verifyUser, toggleFavoriteLook);
-
+router.delete("/:lookId", verifyUser, deleteLook);
+router.get('/stats', verifyUser, getUserStats);
+router.post("/feedback", verifyUser, saveLookFeedback);
+router.get("/preferences/stats", verifyUser, getUserPreferenceStats); 
+router.patch("/preferences/update-weights", verifyUser, updatePreferenceWeights); 
 export default router;

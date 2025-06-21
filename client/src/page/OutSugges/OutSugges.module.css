@@ -97,6 +97,10 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .lookCard:hover {
@@ -113,7 +117,7 @@
 
 .thumb {
   width: 70px;
-  height: auto;
+  height: 100px;
   object-fit: contain;
   border-radius: 10px;
   background: #fef1ec;
@@ -196,4 +200,230 @@
   border-radius: 10px;
   background-color: #fff5f0;
   padding: 6px;
+}
+
+.overlayBox {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fffaf7;
+  border: 2px solid #e4bba2;
+  border-radius: 24px;
+  padding: 2rem;
+  z-index: 999;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+  animation: fadeIn 0.3s ease;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1.5rem;
+  gap: 1rem;
+}
+
+.likeButton, .dislikeButton {
+  flex: 1;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 999px;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.likeButton {
+  background-color: #ffe6ee;
+  color: #e91e63;
+}
+
+.likeButton:hover {
+  background-color: #ffc2d9;
+  transform: scale(1.05);
+}
+
+.dislikeButton {
+  background-color: #e0e0e0;
+  color: #444;
+}
+
+.dislikeButton:hover {
+  background-color: #d1d1d1;
+  transform: scale(1.05);
+}
+.statsBox {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 15px;
+  padding: 20px;
+  margin: 20px 0;
+  border: 2px solid #e0e7ff;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.statsGrid > div {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.loveButton {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52) !important;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.loveButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+.feedbackSection {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.buttonRow button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.deleteButton {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background-color: #f7f7f7;
+  color: #000000;
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.25s ease, transform 0.2s ease, color 0.25s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  z-index: 1;
+}
+
+.deleteButton:hover {
+  background-color: #ffe0e0;
+  color: #353232;
+  transform: scale(1.05);
+}
+
+.lookCard {
+  position: relative;
+  border: none;
+  border-radius: 16px;
+  padding: 1.2rem;
+  background: #fffaf7;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.feedbackSection {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.likeButton.love {
+  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+  animation: pulse 2s infinite;
+}
+
+.dislikeButton.hate {
+  background: linear-gradient(135deg, #333, #555);
+  color: white;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.lookSource {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.lookCard {
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.lookCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.sourceTag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.sourceTag.preferences {
+  background: #d4edda;
+  color: #155724;
+}
+
+.sourceTag.ai {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.sourceTag.random {
+  background: #e2e3e5;
+  color: #383d41;
 }

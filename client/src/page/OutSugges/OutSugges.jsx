@@ -2,16 +2,29 @@ import React, { useState, useEffect } from 'react';
 import Header from '../../components/Header/Header';
 import styles from './OutSugges.module.css';
 import { Link } from 'react-router-dom';
-import { FaHeart } from 'react-icons/fa'; 
+import { FaHeart, FaRegThumbsDown, FaRegThumbsUp, FaTrash } from 'react-icons/fa';
 
 function OutSugges() {
   const [looks, setLooks] = useState([]);
   const [selectedLook, setSelectedLook] = useState(null);
+  const [suggestedLook, setSuggestedLook] = useState(null);
   const [loading, setLoading] = useState(false);
   const [clothesCount, setClothesCount] = useState(null);
   const [stylePreference, setStylePreference] = useState("casual");
+  const [userStats, setUserStats] = useState(null);
 
   const userId = localStorage.getItem("userId");
+  const fetchUserStats = async () => {
+  try {
+    const res = await fetch("http://localhost:8080/api/looks/stats", {
+      headers: { "x-user-id": userId }
+    });
+    const data = await res.json();
+    if (res.ok) setUserStats(data.stats);
+  } catch (err) {
+    console.error("שגיאה בטעינת סטטיסטיקות:", err);
+  }
+};
 
   useEffect(() => {
     if (!userId) return;
@@ -43,6 +56,7 @@ function OutSugges() {
 
     checkClothesCount();
     fetchLooks();
+    fetchUserStats();
   }, [userId]);
 
   const handleSuggest = async () => {
@@ -70,8 +84,7 @@ function OutSugges() {
       }
 
       if (data.look) {
-        setLooks([data.look, ...looks]);
-        setSelectedLook(null);
+        setSuggestedLook(data.look);
       } else {
         alert("לא נמצאה הצעת לוק שלמה מהפריטים הקיימים.");
       }
@@ -83,7 +96,63 @@ function OutSugges() {
     }
   };
 
-  const handleLookClick = (look) => setSelectedLook(look);
+  const handleLookFeedback = async (feedback) => {
+    if (!suggestedLook) return;
+    
+    try {
+      const res = await fetch("http://localhost:8080/api/looks/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": userId
+        },
+        body: JSON.stringify({ 
+          lookId: suggestedLook._id, 
+          feedback: feedback 
+        })
+      });
+
+      if (res.ok) {
+        if (feedback === 'like' || feedback === 'love') {
+          setLooks([suggestedLook, ...looks]);
+        }
+
+        setSuggestedLook(null);
+        fetchUserStats();
+        if (typeof refreshPreferenceStats === 'function') {
+          refreshPreferenceStats();
+        }
+      }
+    } catch (err) {
+      console.error("שגיאה בשמירת פידבק:", err);
+      alert("שגיאה בשמירת הפידבק");
+    }
+  };
+  const renderUserStats = () => {
+  if (!userStats || userStats.totalFeedbacks === 0) return null;
+  
+  const topColors = Object.entries(userStats.preferredColors)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 3);
+    return (
+    <div className={styles.statsBox}>
+      <h4>📊 ההעדפות שלך</h4>
+      <div className={styles.statsGrid}>
+        <div>
+          <span>💖 לוקים שאהבת: {userStats.likes}</span>
+        </div>
+        <div>
+          <span>👎 לוקים שלא אהבת: {userStats.dislikes}</span>
+        </div>
+        {topColors.length > 0 && (
+          <div>
+            <span>🎨 צבעים מועדפים: {topColors.map(([color]) => color).join(', ')}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
   const handleFavoriteToggle = async (lookId) => {
     try {
@@ -102,6 +171,24 @@ function OutSugges() {
       }
     } catch (err) {
       console.error("שגיאה בסימון מועדף:", err);
+    }
+  };
+
+  const handleDeleteLook = async (lookId) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/looks/${lookId}`, {
+        method: "DELETE",
+        headers: { "x-user-id": userId }
+      });
+      if (res.ok) {
+        setLooks(prev => prev.filter(l => l._id !== lookId));
+      } else {
+        console.error("מחיקה נכשלה:", await res.text());
+        alert("שגיאה במחיקת הלוק");
+      }
+    } catch (err) {
+      console.error("שגיאה בבקשת מחיקה:", err);
+      alert("שגיאה לא צפויה");
     }
   };
 
@@ -140,10 +227,80 @@ function OutSugges() {
     </div>
   );
 
+const renderFeedbackButtons = () => (
+  <div className={styles.buttonRow}>
+    <button 
+      onClick={() => handleLookFeedback('dislike')} 
+      className={styles.dislikeButton}
+    >
+      👎 לא מתאים
+    </button>
+    <button 
+      onClick={() => handleLookFeedback('like')} 
+      className={styles.likeButton}
+    >
+      👍 חמוד
+    </button>
+    <button 
+      onClick={() => handleLookFeedback('love')} 
+      className={`${styles.likeButton} ${styles.loveButton}`}
+    >
+      ❤️ מושלם!
+    </button>
+  </div>
+);
+
   return (
     <div>
       <Header />
       <div className={styles.wrapper}>
+        {suggestedLook && (
+          <div className={styles.overlayBox}>
+            <h3>✨ ההצעה החדשה שלך!</h3>
+            <div className={styles.lookSource}>
+              {suggestedLook.source === 'preferences' && (
+                <div className="bg-green-50 text-green-800 px-3 py-1 rounded-full text-sm mb-3">
+                  🎯 לוק מותאם אישית לפי ההעדפות שלך
+                </div>
+              )}
+              {suggestedLook.source === 'ai' && (
+                <div className="bg-blue-50 text-blue-800 px-3 py-1 rounded-full text-sm mb-3">
+                  🤖 לוק שנוצר על ידי AI
+                </div>
+              )}
+              {(!suggestedLook.source || suggestedLook.source === 'random') && (
+                <div className="bg-purple-50 text-purple-800 px-3 py-1 rounded-full text-sm mb-3">
+                  🎲 לוק אקראי חכם
+                </div>
+              )}
+            </div>
+            <p>עונה: {suggestedLook.season} | סגנון: {suggestedLook.style}</p>
+            {renderStackLook(suggestedLook.items)}
+            <div className={styles.feedbackSection}>
+              <p className="text-sm text-gray-600 mb-3">איך הלוק הזה? הפידבק שלך עוזר לנו להכיר אותך יותר טוב!</p>
+              {renderFeedbackButtons()}
+            </div>
+          </div>
+        )}
+
+        {!suggestedLook && selectedLook && (
+          <div className={styles.overlayBox}>
+            <h3>לוק מוצג</h3>
+            <p>עונה: {selectedLook.season} | סגנון: {selectedLook.style}</p>
+            {renderStackLook(selectedLook.items)}
+            <div className={styles.buttonRow}>
+              <button onClick={() => setSelectedLook(null)} className={styles.dislikeButton}>
+                סגור
+              </button>
+              <button
+                onClick={() => handleFavoriteToggle(selectedLook._id)}
+                className={`${styles.likeButton} ${selectedLook.favorited ? styles.active : ''}`}
+              >
+                <FaHeart /> {selectedLook.favorited ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+              </button>
+            </div>
+          </div>
+        )}
 
         <Link to="/favorites" className={styles.suggestButton}>
           💖 הצג את הלוקים המועדפים שלי
@@ -180,56 +337,42 @@ function OutSugges() {
         </div>
 
         <div className={styles.resultArea}>
-          {selectedLook ? (
-            <div className={styles.lookPreviewBox}>
-              <h3>לוק מוצג</h3>
-              <p>עונה: {selectedLook.season} | סגנון: {selectedLook.style}</p>
-              {renderStackLook(selectedLook.items)}
-
-              <button
-                onClick={() => handleFavoriteToggle(selectedLook._id)}
-                className={`${styles.favoriteIcon} ${selectedLook.favorited ? styles.active : ""}`}
-                aria-label="הוסף למועדפים"
+          <div className={styles.lookGrid}>
+            {looks.length === 0 && (
+              <div className={styles.emptyState}>
+                עדיין לא יצרת לוקים. לחצי על הכפתור למעלה.
+              </div>
+            )}
+            {looks.map((look, idx) => (
+              <div
+                key={idx}
+                onClick={() => setSelectedLook(look)}
+                className={styles.lookCard}
               >
-                <FaHeart />
-              </button>
-
-              <button
-                onClick={() => setSelectedLook(null)}
-                className={styles.closeButton}
-              >
-                סגור תצוגה
-              </button>
-            </div>
-          ) : (
-            <div className={styles.lookGrid}>
-              {looks.length === 0 && (
-                <div className={styles.emptyState}>
-                  עדיין לא יצרת לוקים. לחצי על הכפתור למעלה.
+                <p>עונה: {look.season}</p>
+                <p>סגנון: {look.style}</p>
+                <div className={styles.imageRow}>
+                  {sortItemsForDisplay(look.items).slice(0, 3).map((item, i) => (
+                    <img
+                      key={i}
+                      src={item.image}
+                      alt=""
+                      className={styles.thumb}
+                    />
+                  ))}
                 </div>
-              )}
-              {looks.map((look, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => handleLookClick(look)}
-                  className={styles.lookCard}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteLook(look._id);
+                  }}
+                  className={styles.deleteButton}
                 >
-                  <p>עונה: {look.season}</p>
-                  <p>סגנון: {look.style}</p>
-                  <div className={styles.imageRow}>
-                    {sortItemsForDisplay(look.items).slice(0, 3).map((item, i) => (
-                      <img
-                        key={i}
-                        src={item.image}
-                        alt=""
-                        className={styles.thumb}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                  <FaTrash />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
