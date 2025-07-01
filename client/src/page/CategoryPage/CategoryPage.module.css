@@ -1,124 +1,117 @@
 .categoryPage {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 1rem;
-  text-align: right;
-  direction: rtl;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.withSidebar .content {
+  margin-right: 260px;
+  transition: margin-right 0.3s ease;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff7f0;
+  padding: 14px 22px;
+  border-bottom: 1px solid #e0c3a8;
 }
 
 .categoryTitle {
-  font-size: 2rem;
+  font-size: 24px;
   font-weight: bold;
   color: #7b4a1d;
-  margin-bottom: 2rem;
-  animation: fadeIn 0.5s ease forwards;
+  margin: 0;
 }
 
-.categoryTitle span {
+.filterToggle {
+  font-size: 26px;
+  background: none;
+  border: none;
+  cursor: pointer;
   color: #9c6b3c;
+  z-index: 900;
+  transition: transform 0.3s ease;
+}
+
+.withSidebar .filterToggle {
+  transform: translateX(-260px);
+}
+
+.content {
+  padding: 20px;
+  transition: margin-right 0.3s ease;
 }
 
 .itemsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 30px;
-  margin-top: 2rem;
-  padding: 0;
-  list-style: none;
-  justify-items: start;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
 }
 
 .itemCard {
-  background: linear-gradient(145deg, #ffffff, #f0f0f0);
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.itemCard:hover {
-  transform: translateY(-7px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  background-color: #fff7f0;
+  border: 1px solid #e0c3a8;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
 }
 
 .imageWrapper {
   width: 100%;
-  height: 220px;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   border-radius: 8px;
+  background-color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #fdfdfd;
 }
 
-.imageWrapper img {
+.img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
-}
-
-.itemCard:hover .imageWrapper img {
-  transform: scale(1.05);
+  display: block;
 }
 
 .itemName {
-  margin-top: 1rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #444;
-  text-align: center;
+  margin-top: 8px;
+  font-weight: bold;
+  color: #7b4a1d;
 }
 
 .noResults {
-  margin: 5rem auto;
   text-align: center;
+  padding: 60px 20px;
   color: #7b4a1d;
-  font-size: 1.5rem;
-  animation: fadeIn 0.5s ease forwards;
 }
 
 .noResultsIcon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.noResults small {
+  font-size: 64px;
   display: block;
-  margin-top: 0.5rem;
-  font-size: 1rem;
-  color: #9c6b3c;
+  margin-bottom: 10px;
 }
 
 .backButton {
-  margin-top: 1.5rem;
-  padding: 0.8rem 1.5rem;
-  background-color: #9c6b3c;
-  color: white;
-  font-size: 1.1rem;
-  font-weight: bold;
+  margin-top: 20px;
+  background-color: #d3a675;
   border: none;
-  border-radius: 30px;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-weight: bold;
 }
 
 .backButton:hover {
-  background-color: #7b4a1d;
+  background-color: #b37a4c;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.error {
+  color: red;
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
 }

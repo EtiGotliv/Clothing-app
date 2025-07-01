@@ -35,10 +35,10 @@ function Login() {
       if (res.data.status === "success") {
         const { userId, name } = res.data;
 
-        // 🔐 שמירה מלאה של נתוני המשתמש
         localStorage.setItem("authToken", userId);
-        localStorage.setItem("userId", userId);     // ✅ נוספה השמירה הזו
+        localStorage.setItem("userId", userId);
         localStorage.setItem("userName", name);
+        localStorage.setItem("userEmail", email); 
 
         navigate("/home", { state: { id: userId, name } });
       } else {

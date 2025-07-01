@@ -1,0 +1,118 @@
+.aboutSection {
+  padding: 140px 20px 60px;
+  background-color: #fdebd0;
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+  animation: fadeIn 0.8s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.headline {
+  font-size: 2.5em;
+  margin-bottom: 25px;
+  color: #6a3d0f;
+}
+
+.paragraph {
+  font-size: 1.15em;
+  line-height: 1.8;
+  margin: 12px auto;
+  color: #5e4524;
+  max-width: 700px;
+}
+
+.slogan {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #8e4b10;
+  margin-top: 30px;
+}
+
+.feedbackForm {
+   margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.feedbackForm form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+
+.feedbackForm h3 {
+  color: #6a3d0f;
+  margin-bottom: 15px;
+  font-size: 1.3em;
+}
+
+.feedbackForm textarea {
+  width: 80%;
+  max-width: 800px;
+  min-height: 150px;
+  padding: 18px;
+  font-size: 1.05em;
+  border-radius: 22px;
+  border: 1px solid #d8b68f;
+  background-color: #fff6ea;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  margin-bottom: 25px;
+  resize: none;
+  transition: box-shadow 0.3s ease;
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: plaintext;
+}
+
+.feedbackForm textarea:focus {
+  outline: none;
+  box-shadow: 0 0 8px #e9c29c;
+}
+
+.feedbackForm button {
+  background-color: #c17c4d;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 35px;
+  cursor: pointer;
+  font-size: 1.05em;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.feedbackForm button:hover {
+  background-color: #a9612e;
+  transform: scale(1.05);
+}
+
+.thankYou {
+  font-size: 1.2em;
+  color: #4CAF50;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.sendMore {
+  background-color: #eee4d0;
+  color: #5a4020;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background-color 0.3s ease;
+}
+
+.sendMore:hover {
+  background-color: #e0c8a5;
+}
+
+.formFadeIn {
+  animation: fadeIn 0.6s ease;
+}

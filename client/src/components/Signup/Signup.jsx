@@ -40,6 +40,7 @@ function Signup() {
         localStorage.setItem("authToken", userId);    
         localStorage.setItem("userId", userId);      
         localStorage.setItem("userName", name); 
+        localStorage.setItem("userEmail", email);
         navigate("/home", { state: { id: userId, name } });
       } else if (res.data.status === "exist") {
         alert("User already exists");

@@ -16,6 +16,7 @@ const Header = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userName");
     localStorage.removeItem("userImage");
+    localStorage.removeItem("userEmail");
     window.location.href = "/";
   };
 
