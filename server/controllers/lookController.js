@@ -3,6 +3,30 @@ import Clothing from "../../config/models/allClothing.js";
 import PersonalPreference from "../../config/models/personalPrefer.js";
 import { suggestLookWithOpenAI } from "../services/openaiService.js";
 
+
+const validateLookCombination = (items) => {
+  const normalize = (c) => {
+    const clean = (c || "").toLowerCase().trim();
+    const map = {
+      "t-shirt": "top", "blouse": "top", "shirt": "top", "top": "top",
+      "sweater": "top", "hoodie": "top", "jacket": "top", "pullover": "top",
+      "pants": "bottom", "jeans": "bottom", "shorts": "bottom", "skirt": "bottom",
+      "dress": "dress", "robe": "dress"
+    };
+    return map[clean] || "other";
+  };
+
+  const cats = items.map(i => normalize(i.category || i.name)).filter(c => c !== "other");
+  const count = (type) => cats.filter(c => c === type).length;
+
+  const top = count("top"), bottom = count("bottom"), dress = count("dress");
+
+  if (dress > 1 || top > 1 || bottom > 1) return false;
+  if (dress === 1 && (top > 0 || bottom > 0)) return false;
+  if (dress === 0 && (top === 0 || bottom === 0)) return false;
+
+  return true;
+};
 export const suggestOutfitFromClothingDB = async (req, res) => {
   try {
     const userId = req.userId;
@@ -195,6 +219,7 @@ export const getUserStats = async (req, res) => {
     res.status(500).json({ error: "שגיאה בקבלת סטטיסטיקות משתמש" });
   }
 };
+
 export const createSmartLookFromAI = async (req, res) => {
   try {
     const userId = req.userId;
@@ -204,10 +229,9 @@ export const createSmartLookFromAI = async (req, res) => {
       return res.status(400).json({ error: "חסרה בחירת סגנון" });
     }
 
-    // שלב 1: קבלת בגדים
     let clothes = await Clothing.find({
       user: userId,
-      tags: { $elemMatch: { $regex: new RegExp(`^${stylePreference}$`, 'i') } }
+      tags: { $elemMatch: { $regex: new RegExp(`^${stylePreference}$`, "i") } },
     });
 
     if (clothes.length < 3) {
@@ -218,151 +242,214 @@ export const createSmartLookFromAI = async (req, res) => {
       return res.status(400).json({ error: "אין בגדים בארון שלך." });
     }
 
-    // שלב 2: קבלת לוקים קיימים (חודש אחרון)
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-    
-    const existingLooks = await Look.find({ 
-      user: userId, 
+    const existingLooks = await Look.find({
+      user: userId,
       style: stylePreference,
-      createdAt: { $gte: oneMonthAgo }
     });
-    
-    const existingCombinations = existingLooks.map(look => 
-      look.items.map(item => item._id.toString()).sort().join(',')
+
+    const existingCombinations = new Set(
+      existingLooks.map((look) =>
+        look.items.map((item) => item._id.toString()).sort().join(",")
+      )
     );
 
-    // שלב 3: קבלת העדפות המשתמשת
     const userPreferences = await PersonalPreference.getUserPreferences(userId);
-    
-    // שלב 4: אסטרטגיה חדשה - פחות קריאות AI, יותר לוגיקה חכמה
+    const minFeedbacksToLearn = 5;
+
     let newLook = null;
-    
-    // אם יש העדפות, נשתמש בהן קודם
-    if (userPreferences.length > 0) {
-      console.log("משתמש בהעדפות קיימות...");
-      newLook = await createLookFromPreferences(userId, clothes, stylePreference, existingCombinations, userPreferences);
-    }
-    
-    // אם לא נמצא לוק מהעדפות, ננסה AI (מקסימום 3 נסיונות!)
-    if (!newLook) {
-      console.log("מנסה עם AI...");
-      newLook = await createLookWithLimitedAI(userId, clothes, stylePreference, existingCombinations, 3);
-    }
-    
-    // אם גם זה לא עבד, לוק רנדומלי חכם
-    if (!newLook) {
-      console.log("יוצר לוק רנדומלי חכם...");
-      newLook = await createSmartRandomLook(userId, clothes, stylePreference, existingCombinations);
+
+    if (userPreferences.length >= minFeedbacksToLearn) {
+      console.log("מנסה ליצור לוק מהעדפות...");
+      newLook = await createLookFromPreferences(
+        userId,
+        clothes,
+        stylePreference,
+        Array.from(existingCombinations),
+        userPreferences
+      );
+
+      if (newLook) {
+        console.log("לוק נוצר מהעדפות בהצלחה!");
+        return res.status(200).json({ look: newLook });
+      }
     }
 
-    if (!newLook) {
-      return res.status(200).json({ 
-        look: null, 
-        message: "נוצרו כל הלוקים החדשים האפשריים השבוע. חזור מחר לעוד הצעות!" 
-      });
+    console.log("מנסה ליצור לוק עם AI...");
+    newLook = await createLookWithLimitedAI(
+      userId,
+      clothes,
+      stylePreference,
+      Array.from(existingCombinations)
+    );
+
+    if (newLook) {
+      console.log("לוק נוצר עם AI בהצלחה!");
+      return res.status(200).json({ look: newLook });
     }
 
-    res.status(200).json({ look: newLook });
+    console.log("מנסה ליצור לוק רנדומלי...");
+    newLook = await createSmartRandomLook(
+      userId,
+      clothes,
+      stylePreference,
+      Array.from(existingCombinations)
+    );
+
+    if (newLook) {
+      console.log("לוק רנדומלי נוצר בהצלחה!");
+      return res.status(200).json({ look: newLook });
+    }
+
+    return res.status(200).json({
+      look: null,
+      message: "נוצרו כל הלוקים החדשים האפשריים. חזרי מחר לעוד הצעות!",
+    });
   } catch (err) {
     console.error("AI error:", err);
     res.status(500).json({ error: "שגיאה ביצירת לוק מה-AI" });
   }
 };
 
-// פונקציה חדשה: יצירת לוק מהעדפות קיימות
-const createLookFromPreferences = async (userId, clothes, stylePreference, existingCombinations, userPreferences) => {
-  // ניתוח העדפות
-  const likedPreferences = userPreferences.filter(p => p.feedback === 'like');
-  
-  if (likedPreferences.length === 0) return null;
-  
-  // צבעים מועדפים
-  const preferredColors = {};
-  const preferredCategories = {};
-  
-  likedPreferences.forEach(pref => {
-    pref.lookSnapshot.colors.forEach(color => {
-      preferredColors[color] = (preferredColors[color] || 0) + pref.weight;
-    });
-    pref.lookSnapshot.categories.forEach(cat => {
-      preferredCategories[cat] = (preferredCategories[cat] || 0) + pref.weight;
-    });
+
+const createSmartRandomLook = async (userId, clothes, style, existingKeys) => {
+  const cat = {
+    tops: [], bottoms: [], dresses: [], shoes: [], accessories: []
+  };
+
+  clothes.forEach(item => {
+    const type = (item.category || item.name || "").toLowerCase();
+    if (["shirt", "blouse", "t-shirt", "sweater", "hoodie", "top", "jacket", "pullover"].includes(type)) cat.tops.push(item);
+    else if (["pants", "jeans", "skirt", "shorts"].includes(type)) cat.bottoms.push(item);
+    else if (["dress", "robe"].includes(type)) cat.dresses.push(item);
+    else if (["shoes", "boots", "sneakers", "heels", "sandals"].includes(type)) cat.shoes.push(item);
+    else cat.accessories.push(item);
   });
-  
-  // מיון לפי העדפה
-  const sortedColors = Object.entries(preferredColors)
-    .sort(([,a], [,b]) => b - a)
-    .map(([color]) => color);
-  
-  const sortedCategories = Object.entries(preferredCategories)
-    .sort(([,a], [,b]) => b - a)
-    .map(([cat]) => cat);
-  
-  // ניסיון יצירת לוק מהעדפות
-  for (let attempt = 0; attempt < 10; attempt++) {
-    const selectedItems = [];
-    
-    // בחירת פריטים לפי העדפות צבע וקטגוריה
-    const availableClothes = [...clothes];
-    
-    // נסה ליצור לוק עם הצבעים המועדפים
-    for (const preferredColor of sortedColors.slice(0, 3)) {
-      const colorMatches = availableClothes.filter(item => 
-        item.color && item.color.toLowerCase().includes(preferredColor.toLowerCase())
+
+  for (let i = 0; i < 30; i++) {
+    let selected = [];
+    if (cat.dresses.length && Math.random() < 0.7) {
+      selected.push(cat.dresses[Math.floor(Math.random() * cat.dresses.length)]);
+    } else if (cat.tops.length && cat.bottoms.length) {
+      selected.push(
+        cat.tops[Math.floor(Math.random() * cat.tops.length)],
+        cat.bottoms[Math.floor(Math.random() * cat.bottoms.length)]
       );
-      
-      if (colorMatches.length > 0) {
-        const randomMatch = colorMatches[Math.floor(Math.random() * colorMatches.length)];
-        if (!selectedItems.find(item => item._id.toString() === randomMatch._id.toString())) {
-          selectedItems.push(randomMatch);
-        }
-      }
-    }
-    
-    // השלמת לוק אם צריך
-    if (selectedItems.length < 2) {
-      const remaining = availableClothes.filter(item => 
-        !selectedItems.find(selected => selected._id.toString() === item._id.toString())
-      );
-      
-      while (selectedItems.length < 3 && remaining.length > 0) {
-        const randomItem = remaining.splice(Math.floor(Math.random() * remaining.length), 1)[0];
-        selectedItems.push(randomItem);
-      }
+    } else {
+      continue;
     }
 
-    // תיקון: ולידציה מחמירה יותר
-    if (selectedItems.length >= 2 && validateLookCombination(selectedItems)) {
-      const combinationKey = selectedItems.map(item => item._id.toString()).sort().join(',');
-      
-      if (!existingCombinations.includes(combinationKey)) {
-        const newLook = new Look({
-          user: userId,
-          items: selectedItems.map(item => ({
-            _id: item._id,
-            name: item.name,
-            image: item.image,
-            category: item.category || item.name,
-            color: item.color
-          })),
-          style: stylePreference,
-          season: selectedItems[0].season || "Summer",
-          source: "preferences" // מארק שזה מהעדפות
-        });
+    if (cat.shoes.length && Math.random() > 0.5) {
+      selected.push(cat.shoes[Math.floor(Math.random() * cat.shoes.length)]);
+    }
 
-        await newLook.save();
-        console.log("לוק נוצר מהעדפות!");
-        return newLook;
-      }
+    const key = selected.map(i => i._id.toString()).sort().join(',');
+    if (validateLookCombination(selected) && !existingKeys.includes(key)) {
+      const newLook = new Look({
+        user: userId,
+        items: selected.map(item => ({
+          _id: item._id,
+          name: item.name,
+          image: item.image,
+          category: item.category || item.name,
+          color: item.color
+        })),
+        style,
+        season: selected[0].season || "Summer",
+        source: "random"
+      });
+      await newLook.save();
+      return newLook;
     }
   }
-  
+
   return null;
 };
 
+
+export const cleanDuplicateLooks = async (req, res) => {
+  try {
+    const userId = req.userId;
+    
+    const allLooks = await Look.find({ user: userId }).sort({ createdAt: 1 });
+    const seenCombinations = new Set();
+    const duplicatesToDelete = [];
+
+    allLooks.forEach(look => {
+      const combinationKey = look.items.map(item => item._id.toString()).sort().join(',');
+      
+      if (seenCombinations.has(combinationKey)) {
+        duplicatesToDelete.push(look._id);
+      } else {
+        seenCombinations.add(combinationKey);
+      }
+    });
+
+    if (duplicatesToDelete.length > 0) {
+      await Look.deleteMany({ _id: { $in: duplicatesToDelete } });
+      console.log(`נמחקו ${duplicatesToDelete.length} לוקים כפולים`);
+    }
+
+    res.status(200).json({ 
+      message: `ניקוי הושלם - נמחקו ${duplicatesToDelete.length} לוקים כפולים`,
+      deletedCount: duplicatesToDelete.length 
+    });
+  } catch (err) {
+    console.error("Error cleaning duplicates:", err);
+    res.status(500).json({ error: "שגיאה בניקוי כפילות" });
+  }
+};
+
+
+const createLookFromPreferences = async (userId, clothes, style, existingKeys, preferences) => {
+  const liked = preferences.filter(p => p.feedback === "like");
+  if (!liked.length) return null;
+
+  const colorScore = {}, catScore = {};
+  liked.forEach(p => {
+    p.lookSnapshot.colors.forEach(c => colorScore[c] = (colorScore[c] || 0) + p.weight);
+    p.lookSnapshot.categories.forEach(c => catScore[c] = (catScore[c] || 0) + p.weight);
+  });
+
+  const sortedColors = Object.entries(colorScore).sort(([,a],[,b]) => b - a).map(([c]) => c);
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const selected = [];
+    for (const color of sortedColors.slice(0, 3)) {
+      const options = clothes.filter(i => i.color?.toLowerCase().includes(color.toLowerCase()));
+      if (options.length) selected.push(options[Math.floor(Math.random() * options.length)]);
+    }
+
+    const rest = clothes.filter(i => !selected.find(s => s._id.equals(i._id)));
+    while (selected.length < 3 && rest.length) {
+      selected.push(rest.splice(Math.floor(Math.random() * rest.length), 1)[0]);
+    }
+
+    const key = selected.map(i => i._id.toString()).sort().join(',');
+    if (validateLookCombination(selected) && !existingKeys.includes(key)) {
+      const newLook = new Look({
+        user: userId,
+        items: selected.map(item => ({
+          _id: item._id,
+          name: item.name,
+          image: item.image,
+          category: item.category || item.name,
+          color: item.color
+        })),
+        style,
+        season: selected[0].season || "Summer",
+        source: "preferences"
+      });
+      await newLook.save();
+      return newLook;
+    }
+  }
+
+  return null;
+};
+
+
 // פונקציה חדשה: AI מוגבל
-const createLookWithLimitedAI = async (userId, clothes, stylePreference, existingCombinations, maxAttempts = 3) => {
+const createLookWithLimitedAI = async (userId, clothes, style, existingKeys, max = 3) => {
   const wardrobe = clothes.map(item => ({
     id: item._id.toString(),
     name: item.name,
@@ -372,51 +459,36 @@ const createLookWithLimitedAI = async (userId, clothes, stylePreference, existin
     event: item.tags?.includes("elegant") ? "elegant" : "casual"
   }));
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+  for (let i = 0; i < max; i++) {
     try {
-      console.log(`ניסיון AI ${attempt}/${maxAttempts}...`);
-      
-      const randomizedWardrobe = [...wardrobe].sort(() => Math.random() - 0.5);
-      const selectedIds = await suggestLookWithOpenAI(randomizedWardrobe, stylePreference);
+      const selection = await suggestLookWithOpenAI(wardrobe.sort(() => 0.5 - Math.random()), style);
+      if (!selection?.length) continue;
 
-      if (!selectedIds || selectedIds.length === 0) continue;
+      const chosen = clothes.filter(i => selection.includes(i._id.toString()));
+      const key = chosen.map(i => i._id.toString()).sort().join(',');
 
-      const selectedItems = clothes.filter(item =>
-        selectedIds.includes(item._id.toString())
-      );
-
-      if (selectedItems.length === 0) continue;
-
-      const isValid = validateLookCombination(selectedItems);
-      if (!isValid) continue;
-
-      const combinationKey = selectedItems.map(item => item._id.toString()).sort().join(',');
-      
-      if (!existingCombinations.includes(combinationKey)) {
+      if (validateLookCombination(chosen) && !existingKeys.includes(key)) {
         const newLook = new Look({
           user: userId,
-          items: selectedItems.map(item => ({
+          items: chosen.map(item => ({
             _id: item._id,
             name: item.name,
             image: item.image,
             category: item.category || item.name,
             color: item.color
           })),
-          style: stylePreference,
-          season: selectedItems[0].season || "Summer",
-          source: "ai" // מארק שזה מ-AI
+          style,
+          season: chosen[0].season || "Summer",
+          source: "ai"
         });
-
         await newLook.save();
-        console.log(`לוק נוצר עם AI בניסיון ${attempt}!`);
         return newLook;
       }
-    } catch (error) {
-      console.error(`שגיאה בניסיון AI ${attempt}:`, error);
-      continue;
+    } catch (err) {
+      console.error("שגיאה ביצירת לוק עם AI:", err);
     }
   }
-  
+
   return null;
 };
 
@@ -503,212 +575,6 @@ export const getAllLooks = async (req, res) => {
     console.error("שגיאה בקבלת לוקים:", err);
     res.status(500).json({ error: "שגיאה בטעינת לוקים" });
   }
-};
-
-// תיקון הפונקציה הזו - ולידציה מחמירה יותר נגד לוקים לא חוקיים
-const validateLookCombination = (items) => {
-  console.log("מתחיל ולידציה של הפריטים:", items.map(i => ({ name: i.name, category: i.category })));
-  
-  const normalize = (c) => {
-    const cleanCategory = (c || "").toLowerCase().trim();
-    const map = {
-      "t-shirt": "top",
-      "blouse": "top", 
-      "shirt": "top",
-      "top": "top",
-      "sweater": "top",
-      "hoodie": "top",
-      "jacket": "top",
-      "pullover": "top",
-      "pants": "bottom",
-      "jeans": "bottom",
-      "shorts": "bottom",
-      "skirt": "bottom",
-      "dress": "dress",
-      "robe": "dress"
-    };
-    
-    const normalized = map[cleanCategory] || "other";
-    console.log(`מקטגוריה '${cleanCategory}' -> '${normalized}'`);
-    return normalized;
-  };
-
-  const normCats = items.map(item =>
-    normalize(item.category || item.name || "")
-  ).filter(cat => cat !== "other"); // מסנן פריטים לא מזוהים
-
-  console.log("קטגוריות מנורמלות:", normCats);
-
-  const topCount = normCats.filter(cat => cat === "top").length;
-  const bottomCount = normCats.filter(cat => cat === "bottom").length;
-  const dressCount = normCats.filter(cat => cat === "dress").length;
-
-  console.log(`ספירה: חולצות=${topCount}, תחתונים=${bottomCount}, שמלות=${dressCount}`);
-
-  // חוקי ולידציה מחמירים:
-  // 1. אסור יותר משמלה אחת
-  if (dressCount > 1) {
-    console.log("❌ יותר משמלה אחת - לא תקין");
-    return false;
-  }
-
-  // 2. אסור יותר מחולצה אחת
-  if (topCount > 1) {
-    console.log("❌ יותר מחולצה אחת - לא תקין");
-    return false;
-  }
-
-  // 3. אסור יותר מתחתון אחד
-  if (bottomCount > 1) {
-    console.log("❌ יותר מתחתון אחד - לא תקין");
-    return false;
-  }
-
-  // 4. אם יש שמלה, אסור חולצה או תחתון
-  if (dressCount === 1 && (topCount > 0 || bottomCount > 0)) {
-    console.log("❌ שמלה עם חולצה/תחתון - לא תקין");
-    return false;
-  }
-
-  // 5. אם אין שמלה, חייבים חולצה וגם תחתון
-  if (dressCount === 0 && (topCount === 0 || bottomCount === 0)) {
-    console.log("❌ בלי שמלה חייבים גם חולצה וגם תחתון - לא תקין");
-    return false;
-  }
-
-  // 6. הכל בסדר
-  const isValid = dressCount === 1 || (topCount === 1 && bottomCount === 1);
-  console.log(`✅ לוק ${isValid ? 'תקין' : 'לא תקין'}`);
-  
-  return isValid;
-};
-
-const createSmartRandomLook = async (userId, clothes, stylePreference, existingCombinations) => {
-  console.log("מתחיל יצירת לוק רנדומלי חכם...");
-  
-  const categorizeClothes = (clothes) => {
-    const categories = {
-      tops: [],
-      bottoms: [],
-      dresses: [],
-      shoes: [],
-      accessories: []
-    };
-
-    clothes.forEach(item => {
-      const category = (item.category || item.name || "").toLowerCase();
-      
-      if (['shirt', 'blouse', 't-shirt', 'sweater', 'hoodie', 'top', 'jacket', 'pullover'].includes(category)) {
-        categories.tops.push(item);
-      } else if (['pants', 'jeans', 'skirt', 'shorts'].includes(category)) {
-        categories.bottoms.push(item);
-      } else if (['dress', 'robe'].includes(category)) {
-        categories.dresses.push(item);
-      } else if (['shoes', 'boots', 'sneakers', 'heels', 'sandals'].includes(category)) {
-        categories.shoes.push(item);
-      } else {
-        categories.accessories.push(item);
-      }
-    });
-
-    console.log("קטגוריות בגדים:", {
-      tops: categories.tops.length,
-      bottoms: categories.bottoms.length,
-      dresses: categories.dresses.length,
-      shoes: categories.shoes.length,
-      accessories: categories.accessories.length
-    });
-
-    return categories;
-  };
-
-  const categories = categorizeClothes(clothes);
-  const maxRandomAttempts = 30; // הפחתתי את מספר הניסיונות
-  let randomAttempt = 0;
-
-  while (randomAttempt < maxRandomAttempts) {
-    randomAttempt++;
-    console.log(`ניסיון רנדומלי ${randomAttempt}/${maxRandomAttempts}`);
-    
-    let selectedItems = [];
-
-    // אסטרטגיות יצירת לוק - עם עדיפות לשמלות בודדות
-    const strategies = [
-      // אסטרטגיה 1: שמלה בלבד (חזק יותר)
-      () => {
-        if (categories.dresses.length > 0) {
-          const dress = categories.dresses[Math.floor(Math.random() * categories.dresses.length)];
-          selectedItems.push(dress);
-          console.log("נבחרה שמלה:", dress.name);
-        }
-      },
-      
-      // אסטרטגיה 2: חולצה + תחתון
-      () => {
-        if (categories.tops.length > 0 && categories.bottoms.length > 0) {
-          const top = categories.tops[Math.floor(Math.random() * categories.tops.length)];
-          const bottom = categories.bottoms[Math.floor(Math.random() * categories.bottoms.length)];
-          selectedItems.push(top, bottom);
-          console.log("נבחרו חולצה + תחתון:", top.name, "+", bottom.name);
-        }
-      }
-    ];
-
-    // בחירת אסטרטגיה - 70% סיכוי לשמלה אם יש
-    let chosenStrategy;
-    if (categories.dresses.length > 0 && Math.random() < 0.7) {
-      chosenStrategy = strategies[0]; // שמלה
-    } else {
-      chosenStrategy = strategies[1]; // חולצה + תחתון
-    }
-    
-    chosenStrategy();
-
-    if (selectedItems.length === 0) {
-      console.log("לא נבחרו פריטים בסיסיים - ממשיך לניסיון הבא");
-      continue;
-    }
-
-    // הוספת נעליים (אופציונלי)
-    if (categories.shoes.length > 0 && Math.random() > 0.5) {
-      const shoes = categories.shoes[Math.floor(Math.random() * categories.shoes.length)];
-      selectedItems.push(shoes);
-      console.log("נוספו נעליים:", shoes.name);
-    }
-
-    // בדיקת ולידציה לפני יצירת הלוק
-    if (!validateLookCombination(selectedItems)) {
-      console.log("הלוק לא עבר ולידציה - ממשיך לניסיון הבא");
-      continue;
-    }
-
-    const combinationKey = selectedItems.map(item => item._id.toString()).sort().join(',');
-    
-    if (!existingCombinations.includes(combinationKey)) {
-      const newLook = new Look({
-        user: userId,
-        items: selectedItems.map(item => ({
-          _id: item._id,
-          name: item.name,
-          image: item.image,
-          category: item.category || item.name,
-          color: item.color
-        })),
-        style: stylePreference,
-        season: selectedItems[0].season || "Summer",
-        source: "random"
-      });
-
-      await newLook.save();
-      console.log(`✅ לוק רנדומלי נוצר בהצלחה בניסיון ${randomAttempt}`);
-      return newLook;
-    } else {
-      console.log("השילוב כבר קיים - ממשיך לניסיון הבא");
-    }
-  }
-
-  console.log("❌ לא הצלחתי ליצור לוק רנדומלי חדש");
-  return null;
 };
 
 export const toggleFavoriteLook = async (req, res) => {

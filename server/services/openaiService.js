@@ -20,7 +20,7 @@ export async function analyzeClothingImage(base64Image) {
             "event": "Weekday/Event/Work",
             "style": "casual/elegant"
           }
-          
+
           Style Guidelines:
           - "elegant": formal wear, evening wear, business suits, dressy dresses, blazers, dress shirts, high heels, formal shoes, jewelry, ties, fancy blouses, cocktail dresses, formal skirts
           - "casual": t-shirts, jeans, sneakers, hoodies, casual tops, shorts, casual dresses, sandals, casual pants, polo shirts, casual skirts, everyday wear`
@@ -52,7 +52,7 @@ export async function suggestLookWithOpenAI(wardrobe, stylePreference = "casual"
   }
 
   const styleInHebrew = stylePreference === "casual" ? "יום יומי" : "אלגנטי";
-  
+
   const systemMessage = `אתה סטייליסט אישי מקצועי. עליך לבחור לוק ${styleInHebrew} מתוך רשימת בגדים.
 
 חוקים חשובים:
@@ -76,11 +76,10 @@ export async function suggestLookWithOpenAI(wardrobe, stylePreference = "casual"
         { role: "system", content: systemMessage },
         {
           role: "user",
-          content: `הארון שלי (${styleInHebrew}):
-${JSON.stringify(wardrobe, null, 2)}`
+          content: `הארון שלי (${styleInHebrew}):\n${JSON.stringify(wardrobe, null, 2)}`
         }
       ],
-      temperature: 0.8, // הגדלת היצירתיות
+      temperature: 0.8,
       max_tokens: 300,
     });
 
@@ -94,7 +93,6 @@ ${JSON.stringify(wardrobe, null, 2)}`
       }
       return parsed;
     } catch (e) {
-      // ניסוי לחלץ ID-ים מהטקסט
       const fallback = clean.match(/[a-f0-9]{24}/g);
       if (fallback && fallback.length > 0) {
         return fallback.slice(0, 4);
@@ -105,4 +103,26 @@ ${JSON.stringify(wardrobe, null, 2)}`
     console.error("AI suggestion error:", error);
     throw new Error("שגיאה בקבלת הצעה מה-AI");
   }
+}
+
+export async function getFashionTrendsForSeason(season = "Summer") {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      {
+        role: "system",
+        content: `אתה עורך אופנה. החזר רשימה של 5 טרנדים חמים לאופנת נשים בישראל לעונת ${season}, בפורמט JSON: ["טרנד1", "טרנד2", ...]`
+      },
+      {
+        role: "user",
+        content: "מה הולך עכשיו?"
+      }
+    ],
+    max_tokens: 300,
+    temperature: 0.7
+  });
+
+  const raw = response.choices[0].message.content;
+  const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+  return parsed;
 }

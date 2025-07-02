@@ -8,7 +8,8 @@ import {
   saveLookFeedback,         
   getUserPreferenceStats,
   getUserStats,    
-  updatePreferenceWeights   
+  updatePreferenceWeights,
+  cleanDuplicateLooks
 } from "../controllers/lookController.js";
 import verifyUser from "../middleware/verifyUser.js";
 
@@ -23,4 +24,6 @@ router.get('/stats', verifyUser, getUserStats);
 router.post("/feedback", verifyUser, saveLookFeedback);
 router.get("/preferences/stats", verifyUser, getUserPreferenceStats); 
 router.patch("/preferences/update-weights", verifyUser, updatePreferenceWeights); 
+router.get('/clean-duplicates', cleanDuplicateLooks);
+
 export default router;
