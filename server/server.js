@@ -6,6 +6,8 @@ import clothingRoutes from './routes/clothingRoutes.js';
 import lookRoutes from './routes/lookRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
 import { User, connectDB } from '../config/MongoDB.mjs';
+import tipRoutes from './routes/tipRoutes.js';
+
 
 
 dotenv.config();
@@ -21,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/clothes', clothingRoutes);
 app.use('/api/looks', lookRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/tips', tipRoutes);
 
 
 const port = process.env.PORT || 8080;

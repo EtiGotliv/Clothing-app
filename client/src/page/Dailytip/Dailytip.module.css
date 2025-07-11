@@ -1,0 +1,74 @@
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tipCard {
+  max-width: 720px;
+  margin: 2.5rem auto 2rem;
+  padding: 2.2rem;
+  background: linear-gradient(135deg, #fff6f9 0%, #ffffff 100%);
+  border: 1px solid #f9c5d1;
+  border-radius: 2rem;
+  box-shadow: 0 6px 18px rgba(226, 118, 139, 0.2);
+  direction: rtl;
+  text-align: right;
+  font-family: 'Assistant', sans-serif;
+  animation: fadeSlideIn 0.6s ease-out;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tipCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 26px rgba(198, 93, 123, 0.25);
+}
+
+.tipTitle {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #c2185b;
+  margin-bottom: 1.3rem;
+  border-bottom: 2px solid #f48fb1;
+  display: inline-block;
+  padding-bottom: 0.4rem;
+  letter-spacing: -0.5px;
+}
+
+.tipText {
+  font-size: 1.2rem;
+  line-height: 2;
+  color: #3a3a3a;
+  margin-bottom: 1.8rem;
+  word-spacing: 1px;
+}
+
+.tipCategory {
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(to right, #d63384, #f76707);
+  padding: 0.45rem 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(198, 93, 123, 0.3);
+}
+
+.adminContainer {
+  max-width: 720px;
+  margin: 2.5rem auto 3rem;
+  padding: 2.5rem;
+  background: linear-gradient(135deg, #fff0f5 0%, #ffffff 100%);
+  border: 2px dashed #f8a5c2;
+  border-radius: 2rem;
+  box-shadow: 0 4px 14px rgba(226, 118, 139, 0.15);
+  direction: rtl;
+  font-family: 'Assistant', sans-serif;
+  text-align: right;
+  animation: fadeSlideIn 0.7s ease-out;
+}

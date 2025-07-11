@@ -13,10 +13,7 @@ const Header = () => {
   const userImage = localStorage.getItem("userImage");
 
   const handleSignOut = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userImage");
-    localStorage.removeItem("userEmail");
+    localStorage.clear();
     window.location.href = "/";
   };
 
@@ -47,24 +44,33 @@ const Header = () => {
   }, []);
 
   const hideHeader = location.pathname === "/" || location.pathname === "/Signup";
-
   if (hideHeader) return null;
 
   return (
     <>
       <nav className="w-full bg-[#f0d3b8] shadow-md fixed top-0 left-0 z-50">
         <div className="mx-auto max-w-[1280px] flex items-center justify-between h-20 px-6">
-          <div className="flex items-center gap-1">
-            <img className="h-14 w-auto" src="/Image/Logo.png" alt="Bonitique Logo" />
-            <a href="/home" className="text-white text-2xl font-bold transition-none" style={{ textDecoration: 'none' }}>
-              Bonitique
-            </a>
-            <div className="flex items-center gap-6 ml-8">
-              <a href="/about" className="text-[#7b4a1d] text-lg font-medium hover:text-[#5a3115]">About</a>
-              <a href="/clothes" className="text-[#7b4a1d] text-lg font-medium hover:text-[#5a3115]">Clothes</a>
-              <a href="/Scan-Camera" className="text-[#7b4a1d] text-lg font-medium hover:text-[#5a3115]">Scan</a>
-              <a href="/Sugges" className="text-[#7b4a1d] text-lg font-medium hover:text-[#5a3115]">Sugges</a>
-            </div>
+        <div
+          className="flex items-center gap-2 cursor-pointer "
+          onClick={handleHomeClick}
+          aria-label="Go to homepage"
+        >
+          <img
+            className="h-11 w-auto transform -translate-y-1"
+            src="/Image/Logo.png"
+            alt="Bonitique Logo Icon"
+          />
+          <img
+            className="h-26 w-auto ml-2"
+            src="/Image/namewab.png"
+            alt="Bonitique Logo Text"
+          />
+        </div>
+          <div className="flex items-center gap-6 ml-8">
+            <a href="/about" className="text-[#7b4a1d] text-lg font-medium hover:text-[#5a3115]">About</a>
+            <a href="/clothes" className="text-[#7b4a1d] text-lg font-medium hover:text-[#5a3115]">Clothes</a>
+            <a href="/Scan-Camera" className="text-[#7b4a1d] text-lg font-medium hover:text-[#5a3115]">Scan</a>
+            <a href="/Sugges" className="text-[#7b4a1d] text-lg font-medium hover:text-[#5a3115]">Sugges</a>
           </div>
 
           <div className="flex items-center gap-3 ml-auto">
@@ -83,19 +89,26 @@ const Header = () => {
               className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-[#7b4a1d] hover:bg-[#f9f2e9] transition"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-4 h-4" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.398 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.85-3.85zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.398 1.398l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.85-3.85z"/>
               </svg>
             </button>
 
             <div className="relative">
-              <button type="button" className="flex items-center text-sm rounded-full bg-[#7b4a1d]" onClick={() => setIsOpen(!isOpen)}>
+              <button
+                type="button"
+                className="flex items-center text-sm rounded-full bg-[#7b4a1d]"
+                onClick={() => setIsOpen(!isOpen)}
+              >
                 <img className="h-10 w-10 rounded-full" src={userImage} alt="Profile" />
               </button>
               {isOpen && (
                 <div className="absolute right-0 mt-2 w-48 rounded-md bg-white py-2 shadow-lg ring-1 ring-black/5">
                   <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Your Profile</a>
                   <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Settings</a>
-                  <button onClick={handleSignOut} className="block w-full text-left px-4 py-2 text-md text-gray-700 hover:bg-gray-100">
+                  <button
+                    onClick={handleSignOut}
+                    className="block w-full text-left px-4 py-2 text-md text-gray-700 hover:bg-gray-100"
+                  >
                     Sign out
                   </button>
                 </div>
@@ -106,7 +119,10 @@ const Header = () => {
       </nav>
 
       {showSearch && (
-        <div ref={searchRef} className="fixed top-20 left-0 right-0 z-40 flex justify-center bg-[#fff7f0] py-4 shadow-md animate-fadeIn">
+        <div
+          ref={searchRef}
+          className="fixed top-20 left-0 right-0 z-40 flex justify-center bg-[#fff7f0] py-4 shadow-md animate-fadeIn"
+        >
           <div className="w-full max-w-2xl px-4">
             <Search onClose={() => setShowSearch(false)} />
           </div>
