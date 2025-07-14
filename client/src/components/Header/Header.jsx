@@ -1,6 +1,8 @@
+// src/components/Header/Header.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Search from '../Search/Search';
+import UserImage from '../UserLoginButton/UserImage.jsx'; 
 
 const Header = () => {
   const location = useLocation();
@@ -10,7 +12,8 @@ const Header = () => {
   const searchRef = useRef(null);
   const searchButtonRef = useRef(null);
 
-  const userImage = localStorage.getItem("userImage");
+  const userEmail = localStorage.getItem("userEmail");
+  const userName = localStorage.getItem("userName");
 
   const handleSignOut = () => {
     localStorage.clear();
@@ -50,22 +53,22 @@ const Header = () => {
     <>
       <nav className="w-full bg-[#f0d3b8] shadow-md fixed top-0 left-0 z-50">
         <div className="mx-auto max-w-[1280px] flex items-center justify-between h-20 px-6">
-        <div
-          className="flex items-center gap-2 cursor-pointer "
-          onClick={handleHomeClick}
-          aria-label="Go to homepage"
-        >
-          <img
-            className="h-11 w-auto transform -translate-y-1"
-            src="/Image/Logo.png"
-            alt="Bonitique Logo Icon"
-          />
-          <img
-            className="h-26 w-auto ml-2"
-            src="/Image/namewab.png"
-            alt="Bonitique Logo Text"
-          />
-        </div>
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={handleHomeClick}
+            aria-label="Go to homepage"
+          >
+            <img
+              className="h-11 w-auto transform -translate-y-1"
+              src="/Image/Logo.png"
+              alt="Bonitique Logo Icon"
+            />
+            <img
+              className="h-26 w-auto ml-2"
+              src="/Image/namewab.png"
+              alt="Bonitique Logo Text"
+            />
+          </div>
           <div className="flex items-center gap-6 ml-8">
             <a href="/about" className="text-[#7b4a1d] text-lg font-medium hover:text-[#5a3115]">About</a>
             <a href="/clothes" className="text-[#7b4a1d] text-lg font-medium hover:text-[#5a3115]">Clothes</a>
@@ -79,7 +82,7 @@ const Header = () => {
               className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-[#7b4a1d] hover:bg-[#f9f2e9] transition"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-5 h-5" viewBox="0 0 16 16">
-                <path d="M8 .5l7 7V15a1 1 0 0 1-1 1h-4v-4H6v4H2a1 1 0 0 1-1-1V7.5l7-7z"/>
+                <path d="M8 .5l7 7V15a1 1 0 0 1-1 1h-4v-4H6v4H2a1 1 0 0 1-1-1V7.5l7-7z" />
               </svg>
             </button>
 
@@ -89,7 +92,7 @@ const Header = () => {
               className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-[#7b4a1d] hover:bg-[#f9f2e9] transition"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="w-4 h-4" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.398 1.398l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.85-3.85z"/>
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.398 1.398l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.85-3.85z" />
               </svg>
             </button>
 
@@ -99,7 +102,7 @@ const Header = () => {
                 className="flex items-center text-sm rounded-full bg-[#7b4a1d]"
                 onClick={() => setIsOpen(!isOpen)}
               >
-                <img className="h-10 w-10 rounded-full" src={userImage} alt="Profile" />
+                <UserImage email={userEmail} name={userName} size={40} />
               </button>
               {isOpen && (
                 <div className="absolute right-0 mt-2 w-48 rounded-md bg-white py-2 shadow-lg ring-1 ring-black/5">

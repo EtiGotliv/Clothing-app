@@ -15,31 +15,34 @@ import Signup from "./components/Signup/Signup";
 import { ToastContainer } from 'react-toastify';
 import CameraButton from "./components/common/CameraButton/CameraButton";
 import 'react-toastify/dist/ReactToastify.css';
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+const clientId = "173688084025-o67t8u0q1i2n3m2evrav06j7s46hndrg.apps.googleusercontent.com";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Header />
-
-      <main className={styles.main}>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/Signup" element={<Signup />} />
-          <Route path="/Home" element={<HomePage />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/dailytip" element={<Dailytip />} />
-          <Route path="/clothes" element={<MyClothe />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/clothing-details/:id" element={<ClothingDetailsPage />} />
-          <Route path="/category/:categoryName" element={<CategoryPage />} />
-          <Route path="/Sugges" element={<OutSugges />} />
-          <Route path="/Scan-Camera" element={<ScanCloset />} />
-        </Routes>
-      </main>
-
-      <ToastContainer position="top-right" autoClose={3000} />
-      <CameraButton />
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId={clientId}>
+      <BrowserRouter>
+        <Header />
+        <main className={styles.main}>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/Signup" element={<Signup />} />
+            <Route path="/Home" element={<HomePage />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/dailytip" element={<Dailytip />} />
+            <Route path="/clothes" element={<MyClothe />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/clothing-details/:id" element={<ClothingDetailsPage />} />
+            <Route path="/category/:categoryName" element={<CategoryPage />} />
+            <Route path="/Sugges" element={<OutSugges />} />
+            <Route path="/Scan-Camera" element={<ScanCloset />} />
+          </Routes>
+        </main>
+        <ToastContainer position="top-right" autoClose={3000} />
+        <CameraButton />
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
 
