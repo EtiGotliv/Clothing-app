@@ -26,6 +26,17 @@ const lookSchema = new mongoose.Schema({
   favorited: {
     type: Boolean,
     default: false
+  },
+  source: {
+    type: String,
+    enum: ['smart_learning', 'basic_preferences', 'ai', 'random'],
+    default: 'random'
+  },
+  confidence: {
+    type: Number,
+    min: 0,
+    max: 1,
+    default: 0.5
   }
 });
 

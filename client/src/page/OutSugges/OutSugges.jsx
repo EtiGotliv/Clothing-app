@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '../../components/Header/Header';
 import styles from './OutSugges.module.css';
 import { Link } from 'react-router-dom';
-import { FaHeart, FaRegThumbsDown, FaRegThumbsUp, FaTrash } from 'react-icons/fa';
+import { FaHeart, FaTrash } from 'react-icons/fa';
 
 function OutSugges() {
   const [looks, setLooks] = useState([]);
@@ -12,19 +12,45 @@ function OutSugges() {
   const [clothesCount, setClothesCount] = useState(null);
   const [stylePreference, setStylePreference] = useState("casual");
   const [userStats, setUserStats] = useState(null);
+  const [learningProgress, setLearningProgress] = useState(0);
+  const [personalityInsight, setPersonalityInsight] = useState("");
 
   const userId = localStorage.getItem("userId");
+
   const fetchUserStats = async () => {
-  try {
-    const res = await fetch("http://localhost:8080/api/looks/stats", {
-      headers: { "x-user-id": userId }
-    });
-    const data = await res.json();
-    if (res.ok) setUserStats(data.stats);
-  } catch (err) {
-    console.error("שגיאה בטעינת סטטיסטיקות:", err);
-  }
-};
+    try {
+      const res = await fetch("http://localhost:8080/api/looks/stats", {
+        headers: { "x-user-id": userId }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUserStats(data.stats);
+        
+        // חישוב רמת הלמידה
+        const totalFeedbacks = (data.stats.likes || 0) + (data.stats.dislikes || 0) + (data.stats.loves || 0);
+        const progress = Math.min(totalFeedbacks / 20, 1) * 100;
+        setLearningProgress(progress);
+
+        // תובנות אישיות
+        if (totalFeedbacks >= 10) {
+          const favoriteColors = Object.entries(data.stats.preferredColors || {})
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 2)
+            .map(([color]) => color);
+          
+          if (favoriteColors.length > 0) {
+            setPersonalityInsight(`נראה שאת אוהבת צבעים כמו ${favoriteColors.join(' ו')}`);
+          }
+        } else if (totalFeedbacks >= 5) {
+          setPersonalityInsight("אני מתחיל להכיר את הטעם שלך!");
+        } else {
+          setPersonalityInsight("עוד קצת פידבק ואני אכיר אותך יותר טוב");
+        }
+      }
+    } catch (err) {
+      console.error("שגיאה בטעינת סטטיסטיקות:", err);
+    }
+  };
 
   useEffect(() => {
     if (!userId) return;
@@ -119,40 +145,215 @@ function OutSugges() {
 
         setSuggestedLook(null);
         fetchUserStats();
-        if (typeof refreshPreferenceStats === 'function') {
-          refreshPreferenceStats();
-        }
       }
     } catch (err) {
       console.error("שגיאה בשמירת פידבק:", err);
       alert("שגיאה בשמירת הפידבק");
     }
   };
-  const renderUserStats = () => {
-  if (!userStats || userStats.totalFeedbacks === 0) return null;
-  
-  const topColors = Object.entries(userStats.preferredColors)
-    .sort(([,a], [,b]) => b - a)
-    .slice(0, 3);
+
+  const renderSourceInfo = () => {
+    if (!suggestedLook?.source) return null;
+
+    const sourceConfig = {
+      'advanced_preferences': {
+        icon: '🎯',
+        text: 'לוק מותאם אישית מתקדם',
+        color: 'bg-green-50 text-green-800',
+        description: 'נוצר בהתבסס על הדפוסים שלמדתי מהטעם שלך'
+      },
+      'preferences': {
+        icon: '💖',
+        text: 'לוק מותאם אישית',
+        color: 'bg-pink-50 text-pink-800',
+        description: 'בחרתי לפי מה שאהבת בעבר'
+      },
+      'ai': {
+        icon: '🤖',
+        text: 'לוק מה-AI',
+        color: 'bg-blue-50 text-blue-800',
+        description: 'הבינה המלאכותית יצרה את השילוב הזה'
+      },
+      'random': {
+        icon: '🎲',
+        text: 'לוק אקראי חכם',
+        color: 'bg-purple-50 text-purple-800',
+        description: 'שילוב מפתיע שעשוי להתאים לך'
+      }
+    };
+
+    const config = sourceConfig[suggestedLook.source] || sourceConfig['random'];
+
     return (
-    <div className={styles.statsBox}>
-      <h4>📊 ההעדפות שלך</h4>
-      <div className={styles.statsGrid}>
-        <div>
-          <span>💖 לוקים שאהבת: {userStats.likes}</span>
+      <div className={`${config.color} px-3 py-2 rounded-lg text-sm mb-3`}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
+          <span style={{ fontSize: '18px' }}>{config.icon}</span>
+          {config.text}
+          {suggestedLook.confidence && (
+            <span style={{ fontSize: '12px', opacity: 0.75 }}>
+              (רמת ביטחון: {Math.round(suggestedLook.confidence * 100)}%)
+            </span>
+          )}
         </div>
-        <div>
-          <span>👎 לוקים שלא אהבת: {userStats.dislikes}</span>
+        <p style={{ fontSize: '12px', marginTop: '4px', opacity: 0.8 }}>{config.description}</p>
+      </div>
+    );
+  };
+
+  const renderLearningProgress = () => {
+    if (learningProgress === 0) return null;
+
+    return (
+      <div style={{ 
+        backgroundColor: '#f9f9f9', 
+        padding: '12px', 
+        borderRadius: '8px', 
+        marginBottom: '16px' 
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '8px' 
+        }}>
+          <span style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+            🧠 רמת הלמידה שלי עליך
+          </span>
+          <span style={{ fontSize: '12px', color: '#6b7280' }}>
+            {Math.round(learningProgress)}%
+          </span>
         </div>
-        {topColors.length > 0 && (
-          <div>
-            <span>🎨 צבעים מועדפים: {topColors.map(([color]) => color).join(', ')}</span>
-          </div>
+        
+        <div style={{ 
+          width: '100%', 
+          backgroundColor: '#e5e7eb', 
+          borderRadius: '9999px', 
+          height: '8px', 
+          marginBottom: '8px' 
+        }}>
+          <div 
+            style={{ 
+              background: 'linear-gradient(to right, #f472b6, #a855f7)',
+              height: '8px', 
+              borderRadius: '9999px', 
+              transition: 'all 0.5s',
+              width: `${learningProgress}%`
+            }}
+          ></div>
+        </div>
+        
+        {personalityInsight && (
+          <p style={{ fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>
+            💭 {personalityInsight}
+          </p>
         )}
       </div>
-    </div>
-  );
-};
+    );
+  };
+
+  const renderFeedbackButtons = () => {
+    const feedbackButtons = [
+      {
+        key: 'dislike',
+        emoji: '👎',
+        text: 'לא מתאים',
+        style: { 
+          backgroundColor: '#fef2f2', 
+          color: '#b91c1c', 
+          border: '1px solid #fecaca',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          fontSize: '14px',
+          fontWeight: '500',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+          width: '100%'
+        }
+      },
+      {
+        key: 'like', 
+        emoji: '👍',
+        text: 'חמוד',
+        style: { 
+          backgroundColor: '#eff6ff', 
+          color: '#1d4ed8', 
+          border: '1px solid #bfdbfe',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          fontSize: '14px',
+          fontWeight: '500',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+          width: '100%'
+        }
+      },
+      {
+        key: 'love',
+        emoji: '❤️', 
+        text: 'מושלם!',
+        style: { 
+          backgroundColor: '#fdf2f8', 
+          color: '#be185d', 
+          border: '1px solid #fbcfe8',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          fontSize: '14px',
+          fontWeight: '500',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+          width: '100%'
+        }
+      }
+    ];
+
+    return (
+      <div style={{ textAlign: 'center' }}>
+        <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>
+          איך הלוק הזה? הפידבק שלך עוזר לי להכיר אותך יותר טוב! 🎯
+        </p>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px', maxWidth: '320px', margin: '0 auto' }}>
+          {feedbackButtons.map((button) => (
+            <button
+              key={button.key}
+              onClick={() => handleLookFeedback(button.key)}
+              style={button.style}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.boxShadow = 'none';
+              }}
+            >
+              <span style={{ fontSize: '18px' }}>{button.emoji}</span>
+              {button.text}
+            </button>
+          ))}
+        </div>
+        
+        <div style={{ marginTop: '16px', fontSize: '12px', color: '#6b7280' }}>
+          <p>💡 <strong>טיפ:</strong> ככל שתתני יותר פידבק, כך אלמד את הטעם שלך טוב יותר</p>
+          {learningProgress < 50 && (
+            <p style={{ marginTop: '4px' }}>🌱 עוד {Math.ceil((50 - learningProgress) / 5)} פידבקים ואתחיל ליצור לוקים מותאמים אישית</p>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const handleFavoriteToggle = async (lookId) => {
     try {
@@ -227,29 +428,6 @@ function OutSugges() {
     </div>
   );
 
-const renderFeedbackButtons = () => (
-  <div className={styles.buttonRow}>
-    <button 
-      onClick={() => handleLookFeedback('dislike')} 
-      className={styles.dislikeButton}
-    >
-      👎 לא מתאים
-    </button>
-    <button 
-      onClick={() => handleLookFeedback('like')} 
-      className={styles.likeButton}
-    >
-      👍 חמוד
-    </button>
-    <button 
-      onClick={() => handleLookFeedback('love')} 
-      className={`${styles.likeButton} ${styles.loveButton}`}
-    >
-      ❤️ מושלם!
-    </button>
-  </div>
-);
-
   return (
     <div>
       <Header />
@@ -257,27 +435,11 @@ const renderFeedbackButtons = () => (
         {suggestedLook && (
           <div className={styles.overlayBox}>
             <h3>✨ ההצעה החדשה שלך!</h3>
-            <div className={styles.lookSource}>
-              {suggestedLook.source === 'preferences' && (
-                <div className="bg-green-50 text-green-800 px-3 py-1 rounded-full text-sm mb-3">
-                  🎯 לוק מותאם אישית לפי ההעדפות שלך
-                </div>
-              )}
-              {suggestedLook.source === 'ai' && (
-                <div className="bg-blue-50 text-blue-800 px-3 py-1 rounded-full text-sm mb-3">
-                  🤖 לוק שנוצר על ידי AI
-                </div>
-              )}
-              {(!suggestedLook.source || suggestedLook.source === 'random') && (
-                <div className="bg-purple-50 text-purple-800 px-3 py-1 rounded-full text-sm mb-3">
-                  🎲 לוק אקראי חכם
-                </div>
-              )}
-            </div>
+            {renderSourceInfo()}
+            {renderLearningProgress()}
             <p>עונה: {suggestedLook.season} | סגנון: {suggestedLook.style}</p>
             {renderStackLook(suggestedLook.items)}
             <div className={styles.feedbackSection}>
-              <p className="text-sm text-gray-600 mb-3">איך הלוק הזה? הפידבק שלך עוזר לנו להכיר אותך יותר טוב!</p>
               {renderFeedbackButtons()}
             </div>
           </div>
@@ -315,6 +477,32 @@ const renderFeedbackButtons = () => (
             <p>הארון שלך ריק<br />הוסף בגדים כדי לקבל הצעות לוק.</p>
           </div>
         ) : null}
+
+        {/* הצגת סטטיסטיקות אם יש */}
+        {userStats && userStats.totalFeedbacks > 0 && (
+          <div className={styles.statsBox}>
+            <h4>📊 ההעדפות שלך</h4>
+            <div className={styles.statsGrid}>
+              <div>
+                <span>💖 לוקים שאהבת: {userStats.likes + (userStats.loves || 0)}</span>
+              </div>
+              <div>
+                <span>👎 לוקים שלא אהבת: {userStats.dislikes}</span>
+              </div>
+              {Object.keys(userStats.preferredColors || {}).length > 0 && (
+                <div>
+                  <span>🎨 צבעים מועדפים: {
+                    Object.entries(userStats.preferredColors)
+                      .sort(([,a], [,b]) => b - a)
+                      .slice(0, 3)
+                      .map(([color]) => color)
+                      .join(', ')
+                  }</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className={styles.controls}>
           <label htmlFor="style-select">בחרי סגנון:</label>

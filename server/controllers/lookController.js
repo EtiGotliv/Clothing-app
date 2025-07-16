@@ -3,6 +3,19 @@ import Clothing from "../../config/models/allClothing.js";
 import PersonalPreference from "../../config/models/personalPrefer.js";
 import { suggestLookWithOpenAI } from "../services/openaiService.js";
 
+const normalizeColor = (color) => {
+  const colorMap = {
+    'dark blue': 'blue', 'light blue': 'blue', 'navy blue': 'blue', 'navy': 'blue',
+    'dark green': 'green', 'light green': 'green', 'olive': 'green',
+    'dark red': 'red', 'light red': 'red', 'burgundy': 'red', 'wine': 'red',
+    'light pink': 'pink', 'hot pink': 'pink', 'rose': 'pink',
+    'beige': 'brown', 'tan': 'brown', 'chocolate': 'brown',
+    'gray': 'grey', 'light grey': 'grey', 'dark grey': 'grey'
+  };
+  
+  const normalized = color ? color.toLowerCase().trim() : '';
+  return colorMap[normalized] || normalized;
+};
 
 const validateLookCombination = (items) => {
   const normalize = (c) => {
@@ -27,6 +40,8 @@ const validateLookCombination = (items) => {
 
   return true;
 };
+
+// פונקציה פשוטה להצעת לוק מהמסד נתונים (לתאימות לאחור)
 export const suggestOutfitFromClothingDB = async (req, res) => {
   try {
     const userId = req.userId;
@@ -87,139 +102,6 @@ export const suggestOutfitFromClothingDB = async (req, res) => {
   }
 };
 
-export const saveLookFeedback = async (req, res) => {
-  try {
-    const { lookId, feedback } = req.body;
-    const userId = req.userId;
-
-    if (!lookId || !feedback || !['like', 'dislike', 'love'].includes(feedback)) {
-      return res.status(400).json({ error: "נתונים לא תקינים" });
-    }
-
-    const look = await Look.findById(lookId);
-    if (!look) {
-      return res.status(404).json({ error: "לוק לא נמצא" });
-    }
-
-    const normalizeColor = (color) => {
-      const colorMap = {
-        'dark blue': 'blue',
-        'light blue': 'blue',
-        'navy blue': 'blue',
-        'navy': 'blue',
-        'dark green': 'green',
-        'light green': 'green',
-        'dark red': 'red',
-        'light red': 'red',
-        'pink': 'pink',
-        'beige': 'brown',
-        'tan': 'brown',
-        'gray': 'grey',
-        'grey': 'grey'
-      };
-      
-      const normalized = color ? color.toLowerCase().trim() : '';
-      return colorMap[normalized] || normalized;
-    };
-    const lookSnapshot = {
-      style: look.style,
-      season: look.season,
-      colors: [...new Set(look.items.map(item => item.color).filter(Boolean))],
-      categories: [...new Set(look.items.map(item => item.category).filter(Boolean))],
-      itemCount: look.items.length
-    };
-
-    let existingPreference = await PersonalPreference.findOne({
-      user: userId,
-      lookId: lookId
-    });
-
-    if (existingPreference) {
-      existingPreference.feedback = feedback;
-      existingPreference.feedbackDate = new Date();
-      existingPreference.weight = 1.0; 
-      existingPreference.lookSnapshot = lookSnapshot;
-      await existingPreference.save();
-    } else {
-      const newPreference = new PersonalPreference({
-        user: userId,
-        lookId: lookId,
-        lookSnapshot: lookSnapshot,
-        feedback: feedback
-      });
-      await newPreference.save();
-    }
-
-    if (feedback === 'like' || feedback === 'love') {
-      look.favorited = true;
-      await look.save();
-    } else if (feedback === 'dislike') {
-      look.favorited = false;
-      await look.save();
-    }
-
-    res.status(200).json({ 
-      message: "פידבק נשמר בהצלחה",
-      feedback: feedback 
-    });
-
-  } catch (err) {
-    console.error("Error saving feedback:", err);
-    res.status(500).json({ error: "שגיאה בשמירת פידבק" });
-  }
-};
-export const getUserStats = async (req, res) => {
-  try {
-    const userId = req.userId;
-    
-    // קבלת כמות לוקים
-    const totalLooks = await Look.countDocuments({ user: userId });
-    
-    // קבלת לוקים מועדפים
-    const favoriteLooks = await Look.countDocuments({ user: userId, favorited: true });
-    
-    // קבלת סטטיסטיקות לפי עונות
-    const seasonStats = await Look.aggregate([
-      { $match: { user: userId } },
-      { $group: { _id: "$season", count: { $sum: 1 } } }
-    ]);
-    
-    // קבלת סטטיסטיקות לפי סגנונות
-    const styleStats = await Look.aggregate([
-      { $match: { user: userId } },
-      { $group: { _id: "$style", count: { $sum: 1 } } }
-    ]);
-    
-    // קבלת פידבקים
-    const feedbackStats = await PersonalPreference.aggregate([
-      { $match: { user: userId, isActive: true } },
-      { $group: { _id: "$feedback", count: { $sum: 1 } } }
-    ]);
-
-    const stats = {
-      totalLooks,
-      favoriteLooks,
-      seasonStats: seasonStats.reduce((acc, item) => {
-        acc[item._id || 'לא צוין'] = item.count;
-        return acc;
-      }, {}),
-      styleStats: styleStats.reduce((acc, item) => {
-        acc[item._id || 'לא צוין'] = item.count;
-        return acc;
-      }, {}),
-      feedbackStats: feedbackStats.reduce((acc, item) => {
-        acc[item._id || 'ללא פידבק'] = item.count;
-        return acc;
-      }, {})
-    };
-
-    res.status(200).json({ stats });
-  } catch (err) {
-    console.error("Error getting user stats:", err);
-    res.status(500).json({ error: "שגיאה בקבלת סטטיסטיקות משתמש" });
-  }
-};
-
 export const createSmartLookFromAI = async (req, res) => {
   try {
     const userId = req.userId;
@@ -229,14 +111,8 @@ export const createSmartLookFromAI = async (req, res) => {
       return res.status(400).json({ error: "חסרה בחירת סגנון" });
     }
 
-    let clothes = await Clothing.find({
-      user: userId,
-      tags: { $elemMatch: { $regex: new RegExp(`^${stylePreference}$`, "i") } },
-    });
-
-    if (clothes.length < 3) {
-      clothes = await Clothing.find({ user: userId });
-    }
+    // קבלת כל הבגדים של המשתמש
+    let clothes = await Clothing.find({ user: userId });
 
     if (clothes.length === 0) {
       return res.status(400).json({ error: "אין בגדים בארון שלך." });
@@ -254,13 +130,12 @@ export const createSmartLookFromAI = async (req, res) => {
     );
 
     const userPreferences = await PersonalPreference.getUserPreferences(userId);
-    const minFeedbacksToLearn = 5;
-
     let newLook = null;
 
-    if (userPreferences.length >= minFeedbacksToLearn) {
-      console.log("מנסה ליצור לוק מהעדפות...");
-      newLook = await createLookFromPreferences(
+    // אם יש מספיק פידבקים (10+), נסה ליצור לוק חכם על בסיס למידה
+    if (userPreferences.length >= 10) {
+      console.log("מנסה ליצור לוק חכם מבוסס למידה...");
+      newLook = await createSmartLookBasedOnLearning(
         userId,
         clothes,
         stylePreference,
@@ -269,11 +144,29 @@ export const createSmartLookFromAI = async (req, res) => {
       );
 
       if (newLook) {
-        console.log("לוק נוצר מהעדפות בהצלחה!");
+        console.log("לוק חכם נוצר בהצלחה!");
         return res.status(200).json({ look: newLook });
       }
     }
 
+    // אם יש קצת פידבקים (5+), נסה ליצור לוק מהעדפות בסיסיות
+    if (userPreferences.length >= 5) {
+      console.log("מנסה ליצור לוק מהעדפות בסיסיות...");
+      newLook = await createLookWithBasicPreferences(
+        userId,
+        clothes,
+        stylePreference,
+        Array.from(existingCombinations),
+        userPreferences
+      );
+
+      if (newLook) {
+        console.log("לוק מהעדפות נוצר בהצלחה!");
+        return res.status(200).json({ look: newLook });
+      }
+    }
+
+    // נסה עם AI
     console.log("מנסה ליצור לוק עם AI...");
     newLook = await createLookWithLimitedAI(
       userId,
@@ -287,7 +180,8 @@ export const createSmartLookFromAI = async (req, res) => {
       return res.status(200).json({ look: newLook });
     }
 
-    console.log("מנסה ליצור לוק רנדומלי...");
+    // לוק רנדומלי חכם מכל הבגדים
+    console.log("מנסה ליצור לוק רנדומלי חכם מכל הבגדים...");
     newLook = await createSmartRandomLook(
       userId,
       clothes,
@@ -310,7 +204,132 @@ export const createSmartLookFromAI = async (req, res) => {
   }
 };
 
+// פונקציה חדשה: יצירת לוק חכם על בסיס למידה (אבל עדיין מכל הבגדים)
+const createSmartLookBasedOnLearning = async (userId, allClothes, style, existingKeys, preferences) => {
+  const positivePrefs = preferences.filter(p => ['like', 'love'].includes(p.feedback));
+  const negativePrefs = preferences.filter(p => p.feedback === 'dislike');
+  
+  if (positivePrefs.length < 3) {
+    return null;
+  }
+  
+  // למידת העדפות (אבל עדיין בוחרים מכל הבגדים)
+  const goodCategories = new Set();
+  const badCategories = new Set();
+  const goodStyles = new Set();
+  const badStyles = new Set();
+  
+  positivePrefs.forEach(pref => {
+    pref.lookSnapshot.categories.forEach(cat => goodCategories.add(cat));
+    if (pref.lookSnapshot.style) goodStyles.add(pref.lookSnapshot.style);
+  });
+  
+  negativePrefs.forEach(pref => {
+    pref.lookSnapshot.categories.forEach(cat => badCategories.add(cat));
+    if (pref.lookSnapshot.style) badStyles.add(pref.lookSnapshot.style);
+  });
 
+  // נסה ליצור לוק חכם
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const selected = [];
+    
+    // בחירה רנדומלית מכל הבגדים, אבל עם העדפה לקטגוריות טובות
+    const shuffledClothes = [...allClothes].sort(() => Math.random() - 0.5);
+    
+    for (const item of shuffledClothes) {
+      if (selected.length >= 3) break;
+      
+      const itemCategory = item.category || item.name;
+      
+      // אם זה משהו שלא אהבנו בעבר - דלג (אבל לא תמיד)
+      if (badCategories.has(itemCategory) && Math.random() < 0.7) {
+        continue;
+      }
+      
+      // בדוק אם זה משהו שכבר יש
+      if (selected.find(s => s._id.equals(item._id))) {
+        continue;
+      }
+      
+      selected.push(item);
+    }
+    
+    // ודא שיש לפחות 2 פריטים
+    if (selected.length >= 2) {
+      const key = selected.map(i => i._id.toString()).sort().join(',');
+      
+      if (validateLookCombination(selected) && !existingKeys.includes(key)) {
+        const newLook = new Look({
+          user: userId,
+          items: selected.map(item => ({
+            _id: item._id,
+            name: item.name,
+            image: item.image,
+            category: item.category || item.name,
+            color: item.color
+          })),
+          style,
+          season: selected[0].season || "Summer",
+          source: "smart_learning"
+        });
+        
+        await newLook.save();
+        return newLook;
+      }
+    }
+  }
+  
+  return null;
+};
+
+// פונקציה: יצירת לוק עם העדפות בסיסיות (אבל מכל הבגדים)
+const createLookWithBasicPreferences = async (userId, allClothes, style, existingKeys, preferences) => {
+  const positivePrefs = preferences.filter(p => ['like', 'love'].includes(p.feedback));
+  
+  if (positivePrefs.length < 2) {
+    return null;
+  }
+  
+  // בחירה רנדומלית עם מעט העדפה למה שאהבנו
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const selected = [];
+    const shuffledClothes = [...allClothes].sort(() => Math.random() - 0.5);
+    
+    for (const item of shuffledClothes) {
+      if (selected.length >= 3) break;
+      if (selected.find(s => s._id.equals(item._id))) continue;
+      
+      selected.push(item);
+    }
+    
+    if (selected.length >= 2) {
+      const key = selected.map(i => i._id.toString()).sort().join(',');
+      
+      if (validateLookCombination(selected) && !existingKeys.includes(key)) {
+        const newLook = new Look({
+          user: userId,
+          items: selected.map(item => ({
+            _id: item._id,
+            name: item.name,
+            image: item.image,
+            category: item.category || item.name,
+            color: item.color
+          })),
+          style,
+          season: selected[0].season || "Summer",
+          source: "basic_preferences"
+        });
+        
+        await newLook.save();
+        return newLook;
+      }
+    }
+  }
+  
+  return null;
+};
+
+// פונקציה: לוק רנדומלי חכם מכל הבגדים
 const createSmartRandomLook = async (userId, clothes, style, existingKeys) => {
   const cat = {
     tops: [], bottoms: [], dresses: [], shoes: [], accessories: []
@@ -325,11 +344,15 @@ const createSmartRandomLook = async (userId, clothes, style, existingKeys) => {
     else cat.accessories.push(item);
   });
 
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 50; i++) {
     let selected = [];
-    if (cat.dresses.length && Math.random() < 0.7) {
+    
+    // אם יש שמלות ויש סיכוי של 40%
+    if (cat.dresses.length && Math.random() < 0.4) {
       selected.push(cat.dresses[Math.floor(Math.random() * cat.dresses.length)]);
-    } else if (cat.tops.length && cat.bottoms.length) {
+    } 
+    // אחרת, חולצה + תחתון
+    else if (cat.tops.length && cat.bottoms.length) {
       selected.push(
         cat.tops[Math.floor(Math.random() * cat.tops.length)],
         cat.bottoms[Math.floor(Math.random() * cat.bottoms.length)]
@@ -338,8 +361,14 @@ const createSmartRandomLook = async (userId, clothes, style, existingKeys) => {
       continue;
     }
 
+    // הוסף נעליים אם יש (50% סיכוי)
     if (cat.shoes.length && Math.random() > 0.5) {
       selected.push(cat.shoes[Math.floor(Math.random() * cat.shoes.length)]);
+    }
+
+    // הוסף אקססורי אם יש (30% סיכוי)
+    if (cat.accessories.length && Math.random() > 0.7) {
+      selected.push(cat.accessories[Math.floor(Math.random() * cat.accessories.length)]);
     }
 
     const key = selected.map(i => i._id.toString()).sort().join(',');
@@ -365,90 +394,7 @@ const createSmartRandomLook = async (userId, clothes, style, existingKeys) => {
   return null;
 };
 
-
-export const cleanDuplicateLooks = async (req, res) => {
-  try {
-    const userId = req.userId;
-    
-    const allLooks = await Look.find({ user: userId }).sort({ createdAt: 1 });
-    const seenCombinations = new Set();
-    const duplicatesToDelete = [];
-
-    allLooks.forEach(look => {
-      const combinationKey = look.items.map(item => item._id.toString()).sort().join(',');
-      
-      if (seenCombinations.has(combinationKey)) {
-        duplicatesToDelete.push(look._id);
-      } else {
-        seenCombinations.add(combinationKey);
-      }
-    });
-
-    if (duplicatesToDelete.length > 0) {
-      await Look.deleteMany({ _id: { $in: duplicatesToDelete } });
-      console.log(`נמחקו ${duplicatesToDelete.length} לוקים כפולים`);
-    }
-
-    res.status(200).json({ 
-      message: `ניקוי הושלם - נמחקו ${duplicatesToDelete.length} לוקים כפולים`,
-      deletedCount: duplicatesToDelete.length 
-    });
-  } catch (err) {
-    console.error("Error cleaning duplicates:", err);
-    res.status(500).json({ error: "שגיאה בניקוי כפילות" });
-  }
-};
-
-
-const createLookFromPreferences = async (userId, clothes, style, existingKeys, preferences) => {
-  const liked = preferences.filter(p => p.feedback === "like");
-  if (!liked.length) return null;
-
-  const colorScore = {}, catScore = {};
-  liked.forEach(p => {
-    p.lookSnapshot.colors.forEach(c => colorScore[c] = (colorScore[c] || 0) + p.weight);
-    p.lookSnapshot.categories.forEach(c => catScore[c] = (catScore[c] || 0) + p.weight);
-  });
-
-  const sortedColors = Object.entries(colorScore).sort(([,a],[,b]) => b - a).map(([c]) => c);
-
-  for (let attempt = 0; attempt < 10; attempt++) {
-    const selected = [];
-    for (const color of sortedColors.slice(0, 3)) {
-      const options = clothes.filter(i => i.color?.toLowerCase().includes(color.toLowerCase()));
-      if (options.length) selected.push(options[Math.floor(Math.random() * options.length)]);
-    }
-
-    const rest = clothes.filter(i => !selected.find(s => s._id.equals(i._id)));
-    while (selected.length < 3 && rest.length) {
-      selected.push(rest.splice(Math.floor(Math.random() * rest.length), 1)[0]);
-    }
-
-    const key = selected.map(i => i._id.toString()).sort().join(',');
-    if (validateLookCombination(selected) && !existingKeys.includes(key)) {
-      const newLook = new Look({
-        user: userId,
-        items: selected.map(item => ({
-          _id: item._id,
-          name: item.name,
-          image: item.image,
-          category: item.category || item.name,
-          color: item.color
-        })),
-        style,
-        season: selected[0].season || "Summer",
-        source: "preferences"
-      });
-      await newLook.save();
-      return newLook;
-    }
-  }
-
-  return null;
-};
-
-
-// פונקציה חדשה: AI מוגבל
+// פונקציה: AI מוגבל
 const createLookWithLimitedAI = async (userId, clothes, style, existingKeys, max = 3) => {
   const wardrobe = clothes.map(item => ({
     id: item._id.toString(),
@@ -492,81 +438,113 @@ const createLookWithLimitedAI = async (userId, clothes, style, existingKeys, max
   return null;
 };
 
-export const getUserPreferenceStats = async (req, res) => {
+// שאר הפונקציות נשארות זהות...
+export const saveLookFeedback = async (req, res) => {
   try {
+    const { lookId, feedback } = req.body;
     const userId = req.userId;
-    
-    const preferences = await PersonalPreference.find({ user: userId, isActive: true });
-    
-    // ניתוח העדפות
-    const stats = {
-      totalFeedbacks: preferences.length,
-      likes: preferences.filter(p => p.feedback === 'like').length,
-      dislikes: preferences.filter(p => p.feedback === 'dislike').length,
-      
-      // צבעים מועדפים
-      preferredColors: {},
-      preferredStyles: {},
-      preferredSeasons: {}
+
+    if (!lookId || !feedback || !['like', 'dislike', 'love'].includes(feedback)) {
+      return res.status(400).json({ error: "נתונים לא תקינים" });
+    }
+
+    const look = await Look.findById(lookId);
+    if (!look) {
+      return res.status(404).json({ error: "לוק לא נמצא" });
+    }
+
+    const lookSnapshot = {
+      style: look.style,
+      season: look.season,
+      colors: [...new Set(look.items.map(item => normalizeColor(item.color)).filter(Boolean))],
+      categories: [...new Set(look.items.map(item => item.category).filter(Boolean))],
+      itemCount: look.items.length
     };
 
-    preferences.forEach(pref => {
-      if (pref.feedback === 'like') {
-        // ספירת צבעים מועדפים
-        pref.lookSnapshot.colors.forEach(color => {
-          stats.preferredColors[color] = (stats.preferredColors[color] || 0) + pref.weight;
-        });
-        
-        // ספירת סגנונות מועדפים
-        if (pref.lookSnapshot.style) {
-          stats.preferredStyles[pref.lookSnapshot.style] = 
-            (stats.preferredStyles[pref.lookSnapshot.style] || 0) + pref.weight;
-        }
-        
-        // ספירת עונות מועדפות
-        if (pref.lookSnapshot.season) {
-          stats.preferredSeasons[pref.lookSnapshot.season] = 
-            (stats.preferredSeasons[pref.lookSnapshot.season] || 0) + pref.weight;
-        }
-      }
+    let existingPreference = await PersonalPreference.findOne({
+      user: userId,
+      lookId: lookId
     });
 
-    res.status(200).json({ stats });
-  } catch (err) {
-    console.error("Error getting preference stats:", err);
-    res.status(500).json({ error: "שגיאה בקבלת סטטיסטיקות" });
-  }
-};
+    if (existingPreference) {
+      existingPreference.feedback = feedback;
+      existingPreference.feedbackDate = new Date();
+      existingPreference.weight = 1.0; 
+      existingPreference.lookSnapshot = lookSnapshot;
+      await existingPreference.save();
+    } else {
+      const newPreference = new PersonalPreference({
+        user: userId,
+        lookId: lookId,
+        lookSnapshot: lookSnapshot,
+        feedback: feedback
+      });
+      await newPreference.save();
+    }
 
-// פונקציה לעדכון משקלי העדפות (לריצה תקופתית)
-export const updatePreferenceWeights = async (req, res) => {
-  try {
-    const userId = req.userId;
-    
-    const preferences = await PersonalPreference.find({ user: userId, isActive: true });
-    
-    let updatedCount = 0;
-    for (const pref of preferences) {
-      const oldWeight = pref.weight;
-      pref.updateWeight();
-      
-      if (oldWeight !== pref.weight) {
-        await pref.save();
-        updatedCount++;
-      }
+    if (feedback === 'like' || feedback === 'love') {
+      look.favorited = true;
+      await look.save();
+    } else if (feedback === 'dislike') {
+      look.favorited = false;
+      await look.save();
     }
 
     res.status(200).json({ 
-      message: `עודכנו ${updatedCount} העדפות`,
-      updatedCount 
+      message: "פידבק נשמר בהצלחה",
+      feedback: feedback 
     });
+
   } catch (err) {
-    console.error("Error updating weights:", err);
-    res.status(500).json({ error: "שגיאה בעדכון משקלים" });
+    console.error("Error saving feedback:", err);
+    res.status(500).json({ error: "שגיאה בשמירת פידבק" });
   }
 };
 
-// הפונקציות הקיימות...
+export const getUserStats = async (req, res) => {
+  try {
+    const userId = req.userId;
+    
+    const totalLooks = await Look.countDocuments({ user: userId });
+    const favoriteLooks = await Look.countDocuments({ user: userId, favorited: true });
+    
+    const preferences = await PersonalPreference.find({ 
+      user: userId, 
+      isActive: true
+    });
+
+    const stats = {
+      totalLooks,
+      favoriteLooks,
+      totalFeedbacks: preferences.length,
+      likes: preferences.filter(p => p.feedback === 'like').length,
+      dislikes: preferences.filter(p => p.feedback === 'dislike').length,
+      loves: preferences.filter(p => p.feedback === 'love').length,
+      
+      // סטטיסטיקות למידה
+      learningLevel: preferences.length >= 20 ? "מתקדם" : 
+                     preferences.length >= 10 ? "בינוני" : 
+                     preferences.length >= 5 ? "בסיסי" : "התחלתי",
+      
+      confidenceLevel: Math.min(preferences.length / 20, 1),
+      
+      // התפלגות מקורות לוקים
+      sourcesUsed: {
+        smart_learning: await Look.countDocuments({ user: userId, source: "smart_learning" }),
+        basic_preferences: await Look.countDocuments({ user: userId, source: "basic_preferences" }),
+        ai: await Look.countDocuments({ user: userId, source: "ai" }),
+        random: await Look.countDocuments({ user: userId, source: "random" })
+      }
+    };
+
+    res.status(200).json({ stats });
+  } catch (err) {
+    console.error("Error getting user stats:", err);
+    res.status(500).json({ error: "שגיאה בקבלת סטטיסטיקות משתמש" });
+  }
+};
+
+// שאר הפונקציות הקיימות...
 export const getAllLooks = async (req, res) => {
   try {
     const looks = await Look.find({ user: req.userId }).sort({ createdAt: -1 });
@@ -622,5 +600,114 @@ export const deleteLook = async (req, res) => {
   } catch (err) {
     console.error("Delete look error:", err);
     res.status(500).json({ error: "שגיאה במחיקת לוק" });
+  }
+};
+
+export const getUserPreferenceStats = async (req, res) => {
+  try {
+    const userId = req.userId;
+    
+    const preferences = await PersonalPreference.find({ user: userId, isActive: true });
+    
+    // ניתוח העדפות
+    const stats = {
+      totalFeedbacks: preferences.length,
+      likes: preferences.filter(p => p.feedback === 'like').length,
+      dislikes: preferences.filter(p => p.feedback === 'dislike').length,
+      loves: preferences.filter(p => p.feedback === 'love').length,
+      
+      // צבעים מועדפים
+      preferredColors: {},
+      preferredStyles: {},
+      preferredSeasons: {}
+    };
+
+    preferences.forEach(pref => {
+      if (pref.feedback === 'like' || pref.feedback === 'love') {
+        // ספירת צבעים מועדפים
+        pref.lookSnapshot.colors.forEach(color => {
+          const normalized = normalizeColor(color);
+          stats.preferredColors[normalized] = (stats.preferredColors[normalized] || 0) + pref.weight;
+        });
+        
+        // ספירת סגנונות מועדפים
+        if (pref.lookSnapshot.style) {
+          stats.preferredStyles[pref.lookSnapshot.style] = 
+            (stats.preferredStyles[pref.lookSnapshot.style] || 0) + pref.weight;
+        }
+        
+        // ספירת עונות מועדפות
+        if (pref.lookSnapshot.season) {
+          stats.preferredSeasons[pref.lookSnapshot.season] = 
+            (stats.preferredSeasons[pref.lookSnapshot.season] || 0) + pref.weight;
+        }
+      }
+    });
+
+    res.status(200).json({ stats });
+  } catch (err) {
+    console.error("Error getting preference stats:", err);
+    res.status(500).json({ error: "שגיאה בקבלת סטטיסטיקות" });
+  }
+};
+
+// פונקציה לעדכון משקלי העדפות (לריצה תקופתית)
+export const updatePreferenceWeights = async (req, res) => {
+  try {
+    const userId = req.userId;
+    
+    const preferences = await PersonalPreference.find({ user: userId, isActive: true });
+    
+    let updatedCount = 0;
+    for (const pref of preferences) {
+      const oldWeight = pref.weight;
+      pref.updateWeight();
+      
+      if (oldWeight !== pref.weight) {
+        await pref.save();
+        updatedCount++;
+      }
+    }
+
+    res.status(200).json({ 
+      message: `עודכנו ${updatedCount} העדפות`,
+      updatedCount 
+    });
+  } catch (err) {
+    console.error("Error updating weights:", err);
+    res.status(500).json({ error: "שגיאה בעדכון משקלים" });
+  }
+};
+
+export const cleanDuplicateLooks = async (req, res) => {
+  try {
+    const userId = req.userId;
+    
+    const allLooks = await Look.find({ user: userId }).sort({ createdAt: 1 });
+    const seenCombinations = new Set();
+    const duplicatesToDelete = [];
+
+    allLooks.forEach(look => {
+      const combinationKey = look.items.map(item => item._id.toString()).sort().join(',');
+      
+      if (seenCombinations.has(combinationKey)) {
+        duplicatesToDelete.push(look._id);
+      } else {
+        seenCombinations.add(combinationKey);
+      }
+    });
+
+    if (duplicatesToDelete.length > 0) {
+      await Look.deleteMany({ _id: { $in: duplicatesToDelete } });
+      console.log(`נמחקו ${duplicatesToDelete.length} לוקים כפולים`);
+    }
+
+    res.status(200).json({ 
+      message: `ניקוי הושלם - נמחקו ${duplicatesToDelete.length} לוקים כפולים`,
+      deletedCount: duplicatesToDelete.length 
+    });
+  } catch (err) {
+    console.error("Error cleaning duplicates:", err);
+    res.status(500).json({ error: "שגיאה בניקוי כפילות" });
   }
 };

@@ -23,6 +23,11 @@ const Header = () => {
     navigate("/home");
   };
 
+  const handleProfileClick = () => {
+    navigate("/profile");
+    setIsOpen(false); // סגור את התפריט
+  };
+
   const toggleSearch = () => {
     setShowSearch((prev) => !prev);
   };
@@ -92,7 +97,12 @@ const Header = () => {
               </button>
               {isOpen && (
                 <div className="absolute right-0 mt-2 w-48 rounded-md bg-white py-2 shadow-lg ring-1 ring-black/5">
-                  <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Your Profile</a>
+                  <button 
+                    onClick={handleProfileClick}
+                    className="block w-full text-left px-4 py-2 text-md text-gray-700 hover:bg-gray-100"
+                  >
+                    👤 Your Profile
+                  </button>
                   <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Settings</a>
                   <button onClick={handleSignOut} className="block w-full text-left px-4 py-2 text-md text-gray-700 hover:bg-gray-100">
                     Sign out
