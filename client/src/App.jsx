@@ -16,6 +16,9 @@ import Signup from "./components/Signup/Signup";
 import { ToastContainer } from 'react-toastify';
 import CameraButton from "./components/common/CameraButton/CameraButton";
 import 'react-toastify/dist/ReactToastify.css';
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+const clientId = "173688084025-o67t8u0q1i2n3m2evrav06j7s46hndrg.apps.googleusercontent.com";
 
 function App() {
   return (
@@ -31,7 +34,6 @@ function App() {
           <Route path="/dailytip" element={<Dailytip />} />
           <Route path="/clothes" element={<MyClothe />} />
           <Route path="/favorites" element={<Favorites />} />
-          <Route path="/profile" element={<Profile />} />
           <Route path="/clothing-details/:id" element={<ClothingDetailsPage />} />
           <Route path="/category/:categoryName" element={<CategoryPage />} />
           <Route path="/Sugges" element={<OutSugges />} />
