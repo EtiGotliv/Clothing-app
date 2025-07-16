@@ -30,52 +30,62 @@ function Login() {
   async function submit(e) {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:8080/api/auth/login", { email, password });
+      const res = await axios.post(`${import.meta.env.VITE_SERVER_API_URL}/api/auth/login`, {
+        email,
+        password
+      });
 
       if (res.data.status === "success") {
-        const { userId, name } = res.data;
+        const { userId, name, role } = res.data;
 
-        // 🔐 שמירה מלאה של נתוני המשתמש
         localStorage.setItem("authToken", userId);
-        localStorage.setItem("userId", userId);     // ✅ נוספה השמירה הזו
+        localStorage.setItem("userId", userId);
         localStorage.setItem("userName", name);
+        localStorage.setItem("userEmail", email);
+        localStorage.setItem("userRole", role); // ✅ זה התיקון
 
         navigate("/home", { state: { id: userId, name } });
       } else {
-        alert("User does not exist");
+        alert("המשתמש לא קיים");
       }
     } catch (error) {
       console.error(error);
-      alert("Login failed");
+      alert("התחברות נכשלה");
     }
   }
 
   return (
     <div className={styles.authPageContainer}>
       <div className={styles.leftPanel}>
-        <img src="/Image/Logo.png" alt="Logo" className={styles.logo} />
-        <img src="/Image/namewab.png" alt="Logo Web" className={styles.logoWeb} />
+        <div className={styles.logoContainer}>
+          <img src="/Image/Logo.png" alt="Logo" className={styles.logo} />
+          <img src="/Image/namewab.png" alt="Logo Web" className={styles.logoWeb} />
+        </div>
       </div>
       <div className={styles.rightPanel}>
         <div className={styles.formContainer}>
-          <h1>Login</h1>
+          <h1 className={styles.heading}>!ברוכה הבאה</h1>
           <form onSubmit={submit}>
             <input
               type="email"
+              name="email"
+              autoComplete="email"
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
+              placeholder="אימייל"
               required
             />
             <input
               type="password"
+              name="password"
+              autoComplete="current-password"
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
+              placeholder="סיסמה"
               required
             />
-            <input type="submit" value="Login" />
+            <input type="submit" value="כניסה לארון שלי" />
           </form>
-          <div className={styles.divider}>OR</div>
-          <Link to="/Signup" className={styles.link}>Signup Page</Link>
+          <div className={styles.divider}>או</div>
+          <Link to="/Signup" className={styles.link}>ליצירת משתמש חדש</Link>
         </div>
       </div>
     </div>

@@ -19,7 +19,6 @@ const connectDB = async () => {
   }
 };
 
-// הגדרת הסכמה למשתמש
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -32,9 +31,28 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
   }
 });
 
 const User = mongoose.model("users", userSchema);
 
-export { connectDB, User };
+// 💬 סכמה לטיפים
+const tipSchema = new mongoose.Schema({
+  category: {
+    type: String,
+    required: true
+  },
+  text: {
+    type: String,
+    required: true
+  }
+});
+
+const Tip = mongoose.model("tips", tipSchema);
+
+export { connectDB, User, Tip };

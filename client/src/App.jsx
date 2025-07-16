@@ -14,6 +14,7 @@ import ClothingDetailsPage from "./page/ClothingDetailsPage/ClothingDetailsPage"
 import Login from "./components/Login/Login";
 import Signup from "./components/Signup/Signup";
 import { ToastContainer } from 'react-toastify';
+import CameraButton from "./components/common/CameraButton/CameraButton";
 import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
       </main>
 
       <ToastContainer position="top-right" autoClose={3000} />
+      <CameraButton />
     </BrowserRouter>
   );
 }

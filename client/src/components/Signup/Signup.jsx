@@ -31,61 +31,58 @@ function Signup() {
   async function submit(e) {
     e.preventDefault();
     try {
-      const res = await axios.post(`${import.meta.env.VITE_SERVER_API_URL}/Signup`, {
-        name, email, password,
+      const res = await axios.post(`${import.meta.env.VITE_SERVER_API_URL}/api/auth/signup`, {
+        name,
+        email,
+        password
       });
 
       if (res.data.status === "success") {
-        const userId = res.data.userId;
-        localStorage.setItem("authToken", userId);    
-        localStorage.setItem("userId", userId);      
-        localStorage.setItem("userName", name); 
+        const { userId, role } = res.data;
+
+        localStorage.setItem("authToken", userId);
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("userName", name);
+        localStorage.setItem("userEmail", email);
+        localStorage.setItem("userRole", role); // ✅ נשמר התפקיד
+
         navigate("/home", { state: { id: userId, name } });
-      } else if (res.data.status === "exist") {
-        alert("User already exists");
+      } else if (res.data === "exist" || res.data.status === "exist") {
+        alert("המשתמש כבר קיים במערכת");
       } else {
-        alert("Signup failed");
+        alert("ההרשמה נכשלה");
       }
     } catch (e) {
       console.error(e);
-      alert("Something went wrong, please try again.");
+      alert("משהו השתבש, נסי שוב.");
     }
   }
 
   return (
     <div className={styles.authPageContainer}>
       <div className={styles.leftPanel}>
-        <img src="/Image/Logo.png" alt="Logo" className={styles.logo} />
-        <img src="/Image/namewab.png" alt="Logo Web" className={styles.logoWeb} />
+        <div className={styles.logoContainer}>
+          <img src="/Image/Logo.png" alt="Logo" className={styles.logo} />
+          <img src="/Image/namewab.png" alt="Logo Web" className={styles.logoWeb} />
+        </div>
       </div>
       <div className={styles.rightPanel}>
         <div className={styles.formContainer}>
-          <h1>Create Account</h1>
+          <h1 className={styles.heading}>!הצטרפ/י לבוניטיקיו</h1>
           <form onSubmit={submit}>
-            <input
-              type="text"
+            <input type="text" name="name" autoComplete="name"
               onChange={(e) => setName(e.target.value)}
-              placeholder="Your Name"
-              required
-            />
-            <input
-              type="email"
+              placeholder="שם מלא" required />
+            <input type="email" name="email" autoComplete="email"
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              required
-            />
-            <input
-              type="password"
+              placeholder="אימייל" required />
+            <input type="password" name="password" autoComplete="new-password"
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              required
-            />
-            <input type="submit" value="Sign Up" />
+              placeholder="סיסמה" required />
+            <input type="submit" value="צור/י משתמש" />
           </form>
-          <div className={styles.divider}>OR</div>
-          <Link to="/" className={styles.link}>
-            Already have an account? Login
-          </Link>
+          <div className={styles.divider}>או</div>
+          <Link to="/" className={styles.link}>יש לך משתמש? התחברי</Link>
         </div>
       </div>
     </div>
