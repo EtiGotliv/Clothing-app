@@ -2,7 +2,6 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../AuthForm/AuthForm.module.css";
-import GoogleLoginButton from "../UserLoginButton/GoogleLoginButton";
 
 function Login() {
   const navigate = useNavigate();
@@ -88,7 +87,6 @@ function Login() {
             <input type="submit" value="כניסה לארון שלי" />
           </form>
           <div className={styles.divider}>או התחברי עם גוגל</div>
-          <GoogleLoginButton />
           <Link to="/Signup" className={styles.link}>
             ליצירת משתמש חדש
           </Link>

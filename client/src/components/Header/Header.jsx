@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Search from '../Search/Search';
-import UserImage from '../UserLoginButton/UserImage.jsx'; 
 
 const Header = () => {
   const location = useLocation();
@@ -26,7 +25,7 @@ const Header = () => {
 
   const handleProfileClick = () => {
     navigate("/profile");
-    setIsOpen(false); // סגור את התפריט
+    setIsOpen(false);
   };
 
   const toggleSearch = () => {
@@ -104,10 +103,10 @@ const Header = () => {
             <div className="relative">
               <button
                 type="button"
-                className="flex items-center text-sm rounded-full bg-[#7b4a1d]"
+                className="flex items-center text-sm rounded-full bg-[#7b4a1d] px-3 py-2 text-white font-medium"
                 onClick={() => setIsOpen(!isOpen)}
               >
-                <UserImage email={userEmail} name={userName} size={40} />
+                {userName || "User"}
               </button>
               {isOpen && (
                 <div className="absolute right-0 mt-2 w-48 rounded-md bg-white py-2 shadow-lg ring-1 ring-black/5">

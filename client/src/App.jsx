@@ -34,6 +34,7 @@ function App() {
           <Route path="/dailytip" element={<Dailytip />} />
           <Route path="/clothes" element={<MyClothe />} />
           <Route path="/favorites" element={<Favorites />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/clothing-details/:id" element={<ClothingDetailsPage />} />
           <Route path="/category/:categoryName" element={<CategoryPage />} />
           <Route path="/Sugges" element={<OutSugges />} />
