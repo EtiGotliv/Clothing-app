@@ -213,8 +213,11 @@ function OutSugges() {
     };
 
     return (
-          </p>
-        )}
+      <div className={styles.lookInfo}>
+        <span className={styles.infoItem}>
+          {seasonEmojis[look.season?.toLowerCase()] || '📅'} {look.season || 'כללי'}
+        </span>
+        <span className={styles.infoSeparator}>•</span>
         <span className={styles.infoItem}>
           {styleEmojis[look.style?.toLowerCase()] || '👕'} {look.style || 'כללי'}
         </span>
@@ -229,19 +232,6 @@ function OutSugges() {
         key: 'dislike',
         emoji: '👎',
         text: 'לא מתאים',
-        style: { 
-          backgroundColor: '#fef2f2', 
-          color: '#b91c1c', 
-          border: '1px solid #fecaca',
-          borderRadius: '8px',
-          padding: '12px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          fontWeight: '500',
-          cursor: 'pointer',
-          transition: 'all 0.2s',
         className: styles.dislikeFeedback
       },
       {
