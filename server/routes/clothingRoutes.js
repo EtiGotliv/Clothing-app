@@ -9,7 +9,6 @@ import {
   deleteClothing,
   updateClothing
 } from '../controllers/clothingController.js';
-// הסרתי את הimport של suggestOutfitFromClothingDB כי זה לא קיים יותר
 import verifyUser from '../middleware/verifyUser.js';
 
 const router = express.Router();

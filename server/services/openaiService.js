@@ -16,14 +16,24 @@ export async function analyzeClothingImage(base64Image) {
           {
             "name": "clothing type (Shirt/Pants/Dress/Skirt/Shoes/Accessories)",
             "color": "main colors separated by commas",
-            "season": "Summer/Winter/Fall/Spring", 
-            "event": "Weekday/Event/Work",
-            "style": "casual/elegant"
+            "season": "One or two seasons from: Summer, Winter, Fall, Spring",
+            "style": "casual or elegant only (nothing else)",
+            "event": "casual or elegant only (no weekday, event, or work)"
           }
 
-          Style Guidelines:
-          - "elegant": formal wear, evening wear, business suits, dressy dresses, blazers, dress shirts, high heels, formal shoes, jewelry, ties, fancy blouses, cocktail dresses, formal skirts
-          - "casual": t-shirts, jeans, sneakers, hoodies, casual tops, shorts, casual dresses, sandals, casual pants, polo shirts, casual skirts, everyday wear`
+          Guidelines:
+          - "elegant": formal wear, evening wear, business suits, dressy dresses, blazers, dress shirts, high heels, jewelry, ties
+          - "casual": t-shirts, jeans, sneakers, hoodies, casual dresses, sandals, polo shirts, casual skirts
+
+          Strict Instructions:
+          - Only return 'casual' or 'elegant' for both style and event. No other terms.
+          - For season:
+              - Choose only the seasons that are truly relevant.
+              - If the item clearly fits one season – return only that.
+              - If it realistically fits two distinct seasons (e.g., Spring and Fall), you may return both.
+              - Never return more than two seasons.
+              - Do not include unnecessary or generic seasons. Think carefully based on the type and material.
+          `
         },
         {
           role: "user",
@@ -53,6 +63,17 @@ export async function suggestLookWithOpenAI(wardrobe, stylePreference = "casual"
 
   const styleInHebrew = stylePreference === "casual" ? "יום יומי" : "אלגנטי";
 
+  // ✅ סינון הבגדים לפי הסגנון המבוקש
+  const filteredWardrobe = wardrobe.filter(item =>
+    (item.event || "").toLowerCase() === stylePreference ||
+    (item.style || "").toLowerCase() === stylePreference ||
+    (item.tags || []).includes(stylePreference)
+  );
+
+  if (filteredWardrobe.length === 0) {
+    throw new Error(`לא נמצאו בגדים בסגנון "${styleInHebrew}".`);
+  }
+
   const systemMessage = `אתה סטייליסט אישי מקצועי. עליך לבחור לוק ${styleInHebrew} מתוך רשימת בגדים.
 
 חוקים חשובים:
@@ -76,7 +97,7 @@ export async function suggestLookWithOpenAI(wardrobe, stylePreference = "casual"
         { role: "system", content: systemMessage },
         {
           role: "user",
-          content: `הארון שלי (${styleInHebrew}):\n${JSON.stringify(wardrobe, null, 2)}`
+          content: `הארון שלי (${styleInHebrew}):\n${JSON.stringify(filteredWardrobe, null, 2)}`
         }
       ],
       temperature: 0.8,

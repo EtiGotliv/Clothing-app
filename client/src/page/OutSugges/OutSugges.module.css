@@ -150,22 +150,44 @@
   transform: scale(1.05);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.select {
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #d8a374;
+  background-color: #fff6f0;
+  font-size: 1rem;
+  color: #5c3d2e;
+  min-width: 200px;
+  text-align: center;
+}
 
 /* BUTTONS */
 .suggestButton {
-  background-color: #f4a261;
-  color: white;
-  font-size: 1.05rem;
-  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, #ff9a76, #ff6b6b);
+  color: #fff;
+  padding: 1rem 2.5rem;
   border: none;
   border-radius: 999px;
+  font-size: 1.1rem;
+  font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  margin-top: 1rem;
 }
 
 .suggestButton:hover {
   background-color: #e76f51;
-  transform: scale(1.03);
+  background: linear-gradient(135deg, #ff7f50, #ff4c4c);
+  transform: scale(1.05);
 }
 
 .suggestButton:disabled {
@@ -211,6 +233,11 @@
 .likeButton:hover {
   background-color: #ffc2d9;
   transform: scale(1.05);
+}
+.loadingText {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .dislikeButton {
@@ -329,6 +356,18 @@
 @keyframes shimmer {
   0% { left: -100%; }
   100% { left: 100%; }
+}
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #fff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .sourceTag {

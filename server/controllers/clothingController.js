@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import Clothing from '../../config/models/allClothing.js';
 import { analyzeClothingImage } from '../services/openaiService.js';
+import Look from '../../config/models/look.js';
 import { VALID_TYPES, TYPE_MAP, MAX_COLORS, IGNORED_COLOR_TERMS } from '../../config/clothingConfig.js';
 
 function mapToValidType(type) {
@@ -31,6 +32,7 @@ function extractMainColors(colorString) {
   return colorList.slice(0, MAX_COLORS);
 }
 
+
 export async function analyzeAndParseImage(req, res) {
   const fileBuffer = req.file?.buffer;
   if (!fileBuffer) return res.status(400).json({ error: "No image provided" });
@@ -47,57 +49,38 @@ export async function analyzeAndParseImage(req, res) {
     }
 
     const parsed = JSON.parse(cleanResult);
+    const validSeasons = ["Summer", "Winter", "Fall", "Spring"];
+    const validTags = ["casual", "elegant"];
+
+    parsed.season = (parsed.season || "")
+      .split(/[,\/ ]+/)
+      .map(s => s.trim())
+      .filter(s => validSeasons.includes(s))
+      .slice(0, 2)
+      .join(", ");
+
+    if (!validTags.includes(parsed.style)) {
+      parsed.style = "casual";
+    }
+    if (!validTags.includes(parsed.event)) {
+      parsed.event = parsed.style;
+    }
+
     const mappedType = mapToValidType(parsed.name);
     const cleanedColors = extractMainColors(parsed.color);
 
-    // יצירת תגיות אוטומטיות
-    const tags = [];
-    
-    // הוספת תגית סגנון
-    if (parsed.style) {
-      const style = parsed.style.toLowerCase();
-      if (style === 'casual' || style === 'elegant') {
-        tags.push(style);
-      }
-    }
-    
-    // הוספת תגיות לפי סוג האירוע
-    if (parsed.event) {
-      const event = parsed.event.toLowerCase();
-      if (event.includes('event') || event.includes('work')) {
-        if (!tags.includes('elegant')) {
-          tags.push('elegant');
-        }
-      } else if (event.includes('weekday') || event.includes('casual')) {
-        if (!tags.includes('casual')) {
-          tags.push('casual');
-        }
-      }
-    }
-    
-    // אם לא נמצא סגנון, נסה לנחש לפי סוג הבגד
-    if (tags.length === 0) {
-      const casualTypes = ['t-shirt', 'jeans', 'shorts', 'hoodie', 'sneakers', 'sandals'];
-      const elegantTypes = ['dress', 'suit', 'blazer', 'formal', 'shirt', 'skirt', 'heels'];
-      
-      const itemType = (parsed.name || '').toLowerCase();
-      
-      if (casualTypes.some(type => itemType.includes(type))) {
-        tags.push('casual');
-      } else if (elegantTypes.some(type => itemType.includes(type))) {
-        tags.push('elegant');
-      } else {
-        // ברירת מחדל - casual
-        tags.push('casual');
-      }
-    }
+    const tags = [...new Set(
+      [parsed.style, parsed.event]
+        .filter(Boolean)
+        .map(t => t.trim().toLowerCase())
+    )];
 
     return res.json({
       name: mappedType || "",
       color: cleanedColors.join(", "),
       season: parsed.season || "Summer",
-      event: parsed.event || "Weekday",
-      style: parsed.style || (tags.includes('elegant') ? 'elegant' : 'casual'),
+      event: parsed.event,
+      style: parsed.style,
       tags: tags,
       needsManualInput: !mappedType || cleanedColors.length === 0
     });
@@ -108,23 +91,19 @@ export async function analyzeAndParseImage(req, res) {
   }
 }
 
-// פונקציה חדשה ליצירת בגד
 export async function createClothing(req, res) {
   const { name, color, tags, image, category, season, event, style } = req.body;
-  
+
   if (!name || !image) {
     return res.status(400).json({ message: "Missing required fields: name and image" });
   }
 
   try {
-    // וידוא שיש תגיות מתאימות
     let finalTags = Array.isArray(tags) ? [...tags] : [];
-    
-    // אם לא נמצאו תגיות casual/elegant, הוסף לפי הסגנון או ברירת מחדל
-    const hasCasualOrElegant = finalTags.some(tag => 
+    const hasCasualOrElegant = finalTags.some(tag =>
       tag.toLowerCase() === 'casual' || tag.toLowerCase() === 'elegant'
     );
-    
+
     if (!hasCasualOrElegant) {
       if (style) {
         const styleTag = style.toLowerCase();
@@ -132,7 +111,6 @@ export async function createClothing(req, res) {
           finalTags.push(styleTag);
         }
       } else {
-        // ברירת מחדל - casual
         finalTags.push('casual');
       }
     }
@@ -140,7 +118,7 @@ export async function createClothing(req, res) {
     const newClothing = new Clothing({
       name,
       color: color || '',
-      tags: finalTags,
+      tags: [...new Set(finalTags)],
       image,
       category: category || name,
       season: season || 'Summer',
@@ -149,21 +127,22 @@ export async function createClothing(req, res) {
     });
 
     const saved = await newClothing.save();
-    res.status(201).json({ 
-      message: "Clothing item saved successfully", 
-      item: { 
-        id: saved._id, 
+    res.status(201).json({
+      message: "Clothing item saved successfully",
+      item: {
+        id: saved._id,
         name: saved.name,
         color: saved.color,
         category: saved.category,
         tags: saved.tags
-      } 
+      }
     });
   } catch (error) {
     console.error("Save clothing error:", error);
     res.status(500).json({ message: "Save failed", error: error.message });
   }
 }
+
 
 // פונקציה לקבלת כל הבגדים
 export async function getAllClothing(req, res) {
@@ -240,9 +219,16 @@ export async function deleteClothing(req, res) {
     if (!deleted) {
       return res.status(404).json({ message: "Item not found or unauthorized" });
     }
+    const deletedLooks = await Look.deleteMany({
+      user: req.userId,
+      "items._id": id
+    });
 
-    res.json({ message: "Item deleted successfully", deletedItem: deleted.name });
-  } catch (error) {
+    res.json({ 
+      message: `הבגד "${deleted.name}" נמחק, יחד עם ${deletedLooks.deletedCount} לוקים שהשתמשו בו.`,
+      deletedItem: deleted.name 
+    });
+    } catch (error) {
     console.error("Delete clothing error:", error);
     res.status(500).json({ message: "Delete failed", error: error.message });
   }

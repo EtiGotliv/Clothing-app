@@ -40,6 +40,36 @@ const validateLookCombination = (items) => {
 
   return true;
 };
+const isItemMatchingStyle = (item, stylePreference) => {
+  const style = stylePreference.toLowerCase();
+  const tags = (item.tags || []).map(t => t.toLowerCase());
+  const event = (item.event || "").toLowerCase();
+  const itemStyle = (item.style || "").toLowerCase();
+
+  if (tags.includes(style)) return true;
+
+  if (event && event === style) return true;
+
+  if (itemStyle && itemStyle === style) return true;
+
+  return false;
+};
+
+
+
+const getClothesForStyle = (allClothes, stylePreference) => {
+  const strictlyMatchingClothes = allClothes.filter(item => {
+    return isItemMatchingStyle(item, stylePreference);
+  });
+  
+  console.log(`🔍 נמצאו ${strictlyMatchingClothes.length} פריטים מתוך ${allClothes.length} שמתאימים לסגנון "${stylePreference}"`);
+  
+  if (strictlyMatchingClothes.length === 0) {
+    console.warn(`⚠️ לא נמצאו בגדים שמתאימים לסגנון "${stylePreference}"`);
+  }
+  
+  return strictlyMatchingClothes;
+};
 
 // פונקציה פשוטה להצעת לוק מהמסד נתונים (לתאימות לאחור)
 export const suggestOutfitFromClothingDB = async (req, res) => {
@@ -206,6 +236,14 @@ export const createSmartLookFromAI = async (req, res) => {
 
 // פונקציה חדשה: יצירת לוק חכם על בסיס למידה (אבל עדיין מכל הבגדים)
 const createSmartLookBasedOnLearning = async (userId, allClothes, style, existingKeys, preferences) => {
+  // ✅ סינון קפדני של בגדים לפי סגנון
+  const styleMatchingClothes = getClothesForStyle(allClothes, style);
+  
+  if (styleMatchingClothes.length < 2) {
+    console.log(`❌ אין מספיק בגדים (${styleMatchingClothes.length}) בסגנון "${style}" ליצירת לוק`);
+    return null;
+  }
+  
   const positivePrefs = preferences.filter(p => ['like', 'love'].includes(p.feedback));
   const negativePrefs = preferences.filter(p => p.feedback === 'dislike');
   
@@ -213,33 +251,36 @@ const createSmartLookBasedOnLearning = async (userId, allClothes, style, existin
     return null;
   }
   
-  // למידת העדפות (אבל עדיין בוחרים מכל הבגדים)
+  // למידת העדפות מהלוקים שאהבה
   const goodCategories = new Set();
   const badCategories = new Set();
-  const goodStyles = new Set();
-  const badStyles = new Set();
   
   positivePrefs.forEach(pref => {
-    pref.lookSnapshot.categories.forEach(cat => goodCategories.add(cat));
-    if (pref.lookSnapshot.style) goodStyles.add(pref.lookSnapshot.style);
+    if (pref.lookSnapshot.style === style) { // רק העדפות מאותו סגנון
+      pref.lookSnapshot.categories.forEach(cat => goodCategories.add(cat));
+    }
   });
   
   negativePrefs.forEach(pref => {
-    pref.lookSnapshot.categories.forEach(cat => badCategories.add(cat));
-    if (pref.lookSnapshot.style) badStyles.add(pref.lookSnapshot.style);
+    if (pref.lookSnapshot.style === style) { // רק העדפות מאותו סגנון
+      pref.lookSnapshot.categories.forEach(cat => badCategories.add(cat));
+    }
   });
 
-  // נסה ליצור לוק חכם
+  // ניסיון יצירת לוק חכם מהבגדים המתאימים בלבד
   for (let attempt = 0; attempt < 30; attempt++) {
     const selected = [];
-    
-    // בחירה רנדומלית מכל הבגדים, אבל עם העדפה לקטגוריות טובות
-    const shuffledClothes = [...allClothes].sort(() => Math.random() - 0.5);
+    const shuffledClothes = [...styleMatchingClothes].sort(() => Math.random() - 0.5);
     
     for (const item of shuffledClothes) {
       if (selected.length >= 3) break;
       
       const itemCategory = item.category || item.name;
+      
+      // וודא שהפריט באמת מתאים לסגנון
+      if (!isItemMatchingStyle(item, style)) {
+        continue;
+      }
       
       // אם זה משהו שלא אהבנו בעבר - דלג (אבל לא תמיד)
       if (badCategories.has(itemCategory) && Math.random() < 0.7) {
@@ -254,7 +295,6 @@ const createSmartLookBasedOnLearning = async (userId, allClothes, style, existin
       selected.push(item);
     }
     
-    // ודא שיש לפחות 2 פריטים
     if (selected.length >= 2) {
       const key = selected.map(i => i._id.toString()).sort().join(',');
       
@@ -284,20 +324,32 @@ const createSmartLookBasedOnLearning = async (userId, allClothes, style, existin
 
 // פונקציה: יצירת לוק עם העדפות בסיסיות (אבל מכל הבגדים)
 const createLookWithBasicPreferences = async (userId, allClothes, style, existingKeys, preferences) => {
+  // ✅ סינון קפדני של בגדים לפי סגנון
+  const styleMatchingClothes = getClothesForStyle(allClothes, style);
+  
+  if (styleMatchingClothes.length < 2) {
+    console.log(`❌ אין מספיק בגדים (${styleMatchingClothes.length}) בסגנון "${style}" ליצירת לוק`);
+    return null;
+  }
+  
   const positivePrefs = preferences.filter(p => ['like', 'love'].includes(p.feedback));
   
   if (positivePrefs.length < 2) {
     return null;
   }
   
-  // בחירה רנדומלית עם מעט העדפה למה שאהבנו
   for (let attempt = 0; attempt < 20; attempt++) {
     const selected = [];
-    const shuffledClothes = [...allClothes].sort(() => Math.random() - 0.5);
+    const shuffledClothes = [...styleMatchingClothes].sort(() => Math.random() - 0.5);
     
     for (const item of shuffledClothes) {
       if (selected.length >= 3) break;
       if (selected.find(s => s._id.equals(item._id))) continue;
+      
+      // וודא שהפריט באמת מתאים לסגנון
+      if (!isItemMatchingStyle(item, style)) {
+        continue;
+      }
       
       selected.push(item);
     }
@@ -329,13 +381,23 @@ const createLookWithBasicPreferences = async (userId, allClothes, style, existin
   return null;
 };
 
+
 // פונקציה: לוק רנדומלי חכם מכל הבגדים
-const createSmartRandomLook = async (userId, clothes, style, existingKeys) => {
+const createSmartRandomLook = async (userId, allClothes, style, existingKeys) => {
+  const styleMatchingClothes = getClothesForStyle(allClothes, style);
+  
+  if (styleMatchingClothes.length < 2) {
+    console.log(`❌ אין מספיק בגדים (${styleMatchingClothes.length}) בסגנון "${style}" ליצירת לוק`);
+    return null;
+  }
+  
   const cat = {
     tops: [], bottoms: [], dresses: [], shoes: [], accessories: []
   };
 
-  clothes.forEach(item => {
+  styleMatchingClothes.forEach(item => {
+    if (!isItemMatchingStyle(item, style)) return; // בדיקה נוספת
+    
     const type = (item.category || item.name || "").toLowerCase();
     if (["shirt", "blouse", "t-shirt", "sweater", "hoodie", "top", "jacket", "pullover"].includes(type)) cat.tops.push(item);
     else if (["pants", "jeans", "skirt", "shorts"].includes(type)) cat.bottoms.push(item);
@@ -344,50 +406,61 @@ const createSmartRandomLook = async (userId, clothes, style, existingKeys) => {
     else cat.accessories.push(item);
   });
 
+  console.log(`📊 בסגנון "${style}": ${cat.tops.length} חולצות, ${cat.bottoms.length} תחתונים, ${cat.dresses.length} שמלות`);
+
   for (let i = 0; i < 50; i++) {
     let selected = [];
     
-    // אם יש שמלות ויש סיכוי של 40%
     if (cat.dresses.length && Math.random() < 0.4) {
-      selected.push(cat.dresses[Math.floor(Math.random() * cat.dresses.length)]);
+      const dress = cat.dresses[Math.floor(Math.random() * cat.dresses.length)];
+      if (isItemMatchingStyle(dress, style)) {
+        selected.push(dress);
+      }
     } 
-    // אחרת, חולצה + תחתון
     else if (cat.tops.length && cat.bottoms.length) {
-      selected.push(
-        cat.tops[Math.floor(Math.random() * cat.tops.length)],
-        cat.bottoms[Math.floor(Math.random() * cat.bottoms.length)]
-      );
+      const top = cat.tops[Math.floor(Math.random() * cat.tops.length)];
+      const bottom = cat.bottoms[Math.floor(Math.random() * cat.bottoms.length)];
+      
+      if (isItemMatchingStyle(top, style) && isItemMatchingStyle(bottom, style)) {
+        selected.push(top, bottom);
+      }
     } else {
       continue;
     }
 
-    // הוסף נעליים אם יש (50% סיכוי)
     if (cat.shoes.length && Math.random() > 0.5) {
-      selected.push(cat.shoes[Math.floor(Math.random() * cat.shoes.length)]);
+      const shoes = cat.shoes[Math.floor(Math.random() * cat.shoes.length)];
+      if (isItemMatchingStyle(shoes, style)) {
+        selected.push(shoes);
+      }
     }
 
-    // הוסף אקססורי אם יש (30% סיכוי)
     if (cat.accessories.length && Math.random() > 0.7) {
-      selected.push(cat.accessories[Math.floor(Math.random() * cat.accessories.length)]);
+      const accessory = cat.accessories[Math.floor(Math.random() * cat.accessories.length)];
+      if (isItemMatchingStyle(accessory, style)) {
+        selected.push(accessory);
+      }
     }
 
-    const key = selected.map(i => i._id.toString()).sort().join(',');
-    if (validateLookCombination(selected) && !existingKeys.includes(key)) {
-      const newLook = new Look({
-        user: userId,
-        items: selected.map(item => ({
-          _id: item._id,
-          name: item.name,
-          image: item.image,
-          category: item.category || item.name,
-          color: item.color
-        })),
-        style,
-        season: selected[0].season || "Summer",
-        source: "random"
-      });
-      await newLook.save();
-      return newLook;
+    if (selected.length >= 2) {
+      const key = selected.map(i => i._id.toString()).sort().join(',');
+      if (validateLookCombination(selected) && !existingKeys.includes(key)) {
+        const newLook = new Look({
+          user: userId,
+          items: selected.map(item => ({
+            _id: item._id,
+            name: item.name,
+            image: item.image,
+            category: item.category || item.name,
+            color: item.color
+          })),
+          style,
+          season: selected[0].season || "Summer",
+          source: "random"
+        });
+        await newLook.save();
+        return newLook;
+      }
     }
   }
 
@@ -395,24 +468,44 @@ const createSmartRandomLook = async (userId, clothes, style, existingKeys) => {
 };
 
 // פונקציה: AI מוגבל
-const createLookWithLimitedAI = async (userId, clothes, style, existingKeys, max = 3) => {
-  const wardrobe = clothes.map(item => ({
+const createLookWithLimitedAI = async (userId, allClothes, style, existingKeys, max = 3) => {
+  const styleMatchingClothes = getClothesForStyle(allClothes, style);
+
+  if (styleMatchingClothes.length === 0) {
+    console.warn(`⚠️ לא נמצאו בגדים שמתאימים לחלוטין לסגנון "${style}" — לא ניתן להציע לוק.`);
+    return null;
+  }
+
+  const wardrobe = styleMatchingClothes.map(item => ({
     id: item._id.toString(),
     name: item.name,
     type: item.category || item.name,
     color: item.color,
     season: item.season || "כללי",
-    event: item.tags?.includes("elegant") ? "elegant" : "casual"
+    event: (item.event || "").toLowerCase(),
+    style: (item.style || "").toLowerCase(),
+    tags: (item.tags || []).map(t => t.toLowerCase())
   }));
 
   for (let i = 0; i < max; i++) {
     try {
-      const selection = await suggestLookWithOpenAI(wardrobe.sort(() => 0.5 - Math.random()), style);
+      const shuffledWardrobe = wardrobe.sort(() => 0.5 - Math.random());
+      const selection = await suggestLookWithOpenAI(shuffledWardrobe, style);
+
       if (!selection?.length) continue;
 
-      const chosen = clothes.filter(i => selection.includes(i._id.toString()));
-      const key = chosen.map(i => i._id.toString()).sort().join(',');
+      const chosen = styleMatchingClothes.filter(i =>
+        selection.includes(i._id.toString())
+      );
 
+      const allMatchStyle = chosen.every(i => isItemMatchingStyle(i, style));
+
+      if (!allMatchStyle) {
+        console.warn("🚫 חלק מהפריטים שנבחרו לא תואמים ב־100% לסגנון — דילוג על הלוק. הבחירה הייתה:", selection);
+        continue;
+      }
+
+      const key = chosen.map(i => i._id.toString()).sort().join(',');
       if (validateLookCombination(chosen) && !existingKeys.includes(key)) {
         const newLook = new Look({
           user: userId,
@@ -427,6 +520,7 @@ const createLookWithLimitedAI = async (userId, clothes, style, existingKeys, max
           season: chosen[0].season || "Summer",
           source: "ai"
         });
+
         await newLook.save();
         return newLook;
       }
@@ -437,6 +531,8 @@ const createLookWithLimitedAI = async (userId, clothes, style, existingKeys, max
 
   return null;
 };
+
+
 
 // שאר הפונקציות נשארות זהות...
 export const saveLookFeedback = async (req, res) => {

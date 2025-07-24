@@ -283,16 +283,10 @@ const Profile = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {/* Header פשוט */}
         <header className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <h1 className="text-xl font-bold text-gray-900">👗 My Style AI</h1>
-              <nav className="flex space-x-4">
-                <a href="/wardrobe" className="text-gray-600 hover:text-gray-900">הארון שלי</a>
-                <a href="/suggestions" className="text-gray-600 hover:text-gray-900">הצעות</a>
-                <a href="/profile" className="text-purple-600 font-medium">פרופיל</a>
-              </nav>
             </div>
           </div>
         </header>
@@ -309,16 +303,10 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header פשוט במקום import */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <h1 className="text-xl font-bold text-gray-900">👗 My Style AI</h1>
-            <nav className="flex space-x-4">
-              <a href="/wardrobe" className="text-gray-600 hover:text-gray-900">הארון שלי</a>
-              <a href="/suggestions" className="text-gray-600 hover:text-gray-900">הצעות</a>
-              <a href="/profile" className="text-purple-600 font-medium">פרופיל</a>
-            </nav>
           </div>
         </div>
       </header>

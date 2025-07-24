@@ -196,34 +196,64 @@ function OutSugges() {
     );
   };
 
-  // Render look info
-  const renderLookInfo = (look) => {
-    const seasonEmojis = {
-      summer: '☀️',
-      winter: '❄️',
-      spring: '🌸',
-      fall: '🍂',
-      current: '📅',
-      transition: '🔄'
-    };
-
-    const styleEmojis = {
-      casual: '👕',
-      elegant: '👗'
-    };
-
-    return (
-      <div className={styles.lookInfo}>
-        <span className={styles.infoItem}>
-          {seasonEmojis[look.season?.toLowerCase()] || '📅'} {look.season || 'כללי'}
-        </span>
-        <span className={styles.infoSeparator}>•</span>
-        <span className={styles.infoItem}>
-          {styleEmojis[look.style?.toLowerCase()] || '👕'} {look.style || 'כללי'}
-        </span>
-      </div>
-    );
+const renderLookInfo = (look) => {
+  const seasonEmojis = {
+    summer: '☀️',
+    winter: '❄️',
+    spring: '🌸',
+    fall: '🍂',
+    current: '📅',
+    transition: '🔄'
   };
+
+  const styleEmojis = {
+    casual: '👕',
+    elegant: '👗'
+  };
+
+  const normalize = (val) => (val || "").trim().toLowerCase();
+
+  const seasonRaw = look.season;
+  const styleRaw = look.style;
+  const eventRaw = look.event;
+  const tagsRaw = look.tags;
+
+  const allTags = new Set();
+
+  // עונות
+  if (seasonRaw) {
+    seasonRaw.split(",").forEach(s => {
+      const clean = normalize(s);
+      if (clean) allTags.add(clean);
+    });
+  }
+
+  // סגנון + אירוע
+  [styleRaw, eventRaw].forEach(val => {
+    const clean = normalize(val);
+    if (clean) allTags.add(clean);
+  });
+
+  // תגיות
+  if (Array.isArray(tagsRaw)) {
+    tagsRaw.forEach(t => {
+      const clean = normalize(t);
+      if (clean) allTags.add(clean);
+    });
+  }
+
+  const finalTagArray = [...allTags];
+
+  return (
+    <div className={styles.lookInfo}>
+      {finalTagArray.map((tag, i) => (
+        <span key={i} className={styles.infoItem}>
+          {seasonEmojis[tag] || styleEmojis[tag] || '🏷️'} {tag}
+        </span>
+      ))}
+    </div>
+  );
+};
 
   // Render feedback buttons
   const renderFeedbackButtons = () => {
@@ -299,7 +329,12 @@ function OutSugges() {
           headers: { "x-user-id": userId }
         });
         const data = await res.json();
-        if (res.ok) setLooks(data.looks || []);
+        if (res.ok) 
+        {
+          const visibleLooks = (data.looks || []).filter(look => look.favorited !== false);
+          setLooks((data.looks || []).filter(l => l.favorited !== false));
+        }
+
       } catch (err) {
         console.error("שגיאה בטעינת לוקים:", err);
       }
@@ -523,10 +558,11 @@ function OutSugges() {
                 מחפש את השילוב המושלם...
               </span>
             ) : (
-              'הצע לי שילוב חכם מהארון שלי'
+              '💡 הצע לי שילוב חכם מהארון שלי'
             )}
           </button>
         </div>
+
 
         {/* Favorites link */}
         <Link to="/favorites" className={styles.favoritesLink}>
@@ -545,30 +581,7 @@ function OutSugges() {
         ) : null}
 
         {/* User statistics */}
-        {userStats && userStats.totalFeedbacks > 0 && (
-          <div className={styles.statsBox}>
-            <h4>📊 ההעדפות שלך</h4>
-            <div className={styles.statsGrid}>
-              <div>
-                <span>💖 לוקים שאהבת: {userStats.likes + (userStats.loves || 0)}</span>
-              </div>
-              <div>
-                <span>👎 לוקים שלא אהבת: {userStats.dislikes}</span>
-              </div>
-              {Object.keys(userStats.preferredColors || {}).length > 0 && (
-                <div>
-                  <span>🎨 צבעים מועדפים: {
-                    Object.entries(userStats.preferredColors)
-                      .sort(([,a], [,b]) => b - a)
-                      .slice(0, 3)
-                      .map(([color]) => color)
-                      .join(', ')
-                  }</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+
 
         {/* Results area */}
         <div className={styles.resultArea}>
